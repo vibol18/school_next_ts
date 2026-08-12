@@ -40,9 +40,9 @@ export default function RegisterPage() {
       setSuccessMsg('Registration successful. Redirecting to login…');
       setTimeout(() => router.push('/login'), 1500);
     } catch (err: any) {
-      console.error('Registration Error Details:', err?.data || err);
+      console.error('Registration Error Details:', err.message, err.data);
       setErrorMsg(
-        err?.data?.message || err?.message || 'Registration failed. Please try again.'
+        err.message || 'Registration failed. Please try again.'
       );
     } finally {
       setIsLoading(false);

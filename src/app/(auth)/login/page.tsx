@@ -31,6 +31,7 @@ export default function LoginPage() {
       const refreshToken = data?.refreshToken;
       const role = data?.role || data?.roles?.[0];
       const username = data?.username;
+      const userId = data?.userId || data?.id;
 
       // 3. Save auth details to localStorage
       if (accessToken) {
@@ -38,6 +39,7 @@ export default function LoginPage() {
         if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         if (role) localStorage.setItem('userRole', role);
         if (username) localStorage.setItem('username', username);
+        if (userId) localStorage.setItem('userId', userId.toString());
 
         // Success - redirect to dashboard
         router.push('/dashboard');
@@ -93,7 +95,7 @@ export default function LoginPage() {
               value={usernameOrEmail}
               onChange={(e) => setUsernameOrEmail(e.target.value)}
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none focus:border-[#534BEB] focus:bg-white focus:ring-2 focus:ring-[#534BEB]/20"
-            />laceholder page for profile settings.
+            />
           </div>
 
           <div>

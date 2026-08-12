@@ -33,7 +33,10 @@ const navItems: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", roles: ["ADMIN", "TEACHER", "STUDENT"] },
   { name: "Students", href: "/students", roles: ["ADMIN", "TEACHER"] },
   { name: "Teachers", href: "/teachers", roles: ["ADMIN"] },
-  { name: "Classes & Subjects", href: "/academic/classes", roles: ["ADMIN"] },
+  { name: "Academic Years", href: "/academic/academic-years", roles: ["ADMIN"] },
+  { name: "Classes", href: "/academic/classes", roles: ["ADMIN"] },
+  { name: "Sections", href: "/academic/sections", roles: ["ADMIN"] },
+  { name: "Subjects", href: "/academic/subjects", roles: ["ADMIN"] },
   { name: "Attendance", href: "/attendance", roles: ["ADMIN", "TEACHER"] },
   { name: "Timetable", href: "/timetable", roles: ["ADMIN", "TEACHER", "STUDENT"] },
   { name: "Exams & Results", href: "/exams", roles: ["ADMIN", "TEACHER", "STUDENT"] },
@@ -99,7 +102,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     setUserEmail(storedEmail);
 
     if (storedAvatar) {
-      // Resolve relative path from Spring Boot backend if necessary
       if (storedAvatar.startsWith("http") || storedAvatar.startsWith("data:")) {
         setAvatarUrl(storedAvatar);
       } else {
@@ -108,7 +110,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [router]);
 
-  // Close the profile dropdown on outside click / Escape
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -166,8 +167,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </span>
           </div>
         </div>
-
-        {/* Dynamic Navigation */}
         <nav className="flex-1 px-3 space-y-0.5 mt-1">
           {visibleNavItems.map((item) => {
             const isActive =
@@ -179,16 +178,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13px] font-medium transition-colors duration-150 ${
-                  isActive
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13px] font-medium transition-colors duration-150 ${isActive
                     ? "bg-[#5b51ef] text-white shadow-[0_1px_2px_rgba(0,0,0,0.25)]"
                     : "text-[#8b93a3] hover:text-slate-100 hover:bg-white/[0.06]"
-                }`}
+                  }`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
-                    isActive ? "bg-white" : "bg-[#454a58] group-hover:bg-[#6b7280]"
-                  }`}
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${isActive ? "bg-white" : "bg-[#454a58] group-hover:bg-[#6b7280]"
+                    }`}
                 />
                 <span className="truncate">{item.name}</span>
               </Link>
@@ -278,11 +275,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 onClick={() => setIsProfileOpen((open) => !open)}
                 aria-expanded={isProfileOpen}
                 aria-haspopup="true"
-                className={`flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-lg border transition-colors ${
-                  isProfileOpen
+                className={`flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-lg border transition-colors ${isProfileOpen
                     ? "border-[#5b51ef]/40 bg-[#5b51ef]/5"
                     : "border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300"
-                }`}
+                  }`}
               >
                 <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-gradient-to-br from-[#6a60f5] to-[#4238d1]">
                   {avatarUrl ? (
@@ -307,9 +303,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   </span>
                 </div>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
-                    isProfileOpen ? "rotate-180" : ""
-                  }`}
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isProfileOpen ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -339,9 +334,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <p className="text-[11px] text-slate-400 truncate">{userEmail}</p>
                       ) : null}
                       <span
-                        className={`inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${
-                          roleStyles[userRole] ?? "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
-                        }`}
+                        className={`inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${roleStyles[userRole] ?? "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
+                          }`}
                       >
                         {userRole}
                       </span>
