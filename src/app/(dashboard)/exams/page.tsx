@@ -1,75 +1,100 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { examApi } from '@/lib/api/exam.api';
+import { academicYearApi } from '@/lib/api/academic.api';
+import type { Exam, AcademicYear } from '@/types/school.types';
 import { DataTable, Column } from '@/components/shared/DataTable';
 import { ListToolbar } from '@/components/shared/ListToolbar';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { Badge } from '@/components/shared/Badge';
-
-interface ExamRecord {
-  id: number;
-  examName: string;
-  subject: string;
-  className: string;
-  examDate: string;
-  avgScore: number | null;
-  status: string;
-}
+import { CalendarDays, FileText } from 'lucide-react';
 
 export default function ExamsPage() {
-  const [exams, setExams] = useState<ExamRecord[]>([]);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [examData, yearData] = await Promise.all([
+        examApi.getAll(),
+        academicYearApi.getAll(),
+      ]);
+      setExams(examData);
+      setAcademicYears(yearData);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch exams.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // TODO: Swap to real API call when backend is ready
-    setTimeout(() => {
-      setExams([
-        { id: 1, examName: 'Term 1 Final', subject: 'Mathematics', className: 'Class 10 - A', examDate: '2024-03-15', avgScore: 78.5, status: 'Graded' },
-        { id: 2, examName: 'Term 1 Final', subject: 'Physics', className: 'Class 10 - A', examDate: '2024-03-18', avgScore: null, status: 'Scheduled' },
-        { id: 3, examName: 'Mid-Term', subject: 'English', className: 'Class 9 - B', examDate: '2024-02-10', avgScore: 82.3, status: 'Graded' },
-      ]);
-      setLoading(false);
-    }, 800);
+    loadData();
   }, []);
+
+  const yearName = (id: number) => academicYears.find((y) => y.id === id)?.yearName;
 
   const filteredExams = exams.filter((e) => {
     const query = search.toLowerCase();
     return (
-      e.examName.toLowerCase().includes(query) ||
-      e.subject.toLowerCase().includes(query) ||
-      e.className.toLowerCase().includes(query)
+      (e.name || '').toLowerCase().includes(query) ||
+      (e.term || '').toLowerCase().includes(query) ||
+      (yearName(e.academicYearId) || '').toLowerCase().includes(query)
     );
   });
 
-  const columns: Column<ExamRecord>[] = [
-    { key: 'examName', header: 'Exam', render: (e) => <span className="font-semibold text-[#111827]">{e.examName}</span> },
-    { key: 'subject', header: 'Subject' },
-    { key: 'className', header: 'Class/Section' },
-    { key: 'examDate', header: 'Date' },
-    { key: 'avgScore', header: 'Avg. Score', render: (e) => e.avgScore ? `${e.avgScore}%` : <span className="text-slate-400">—</span> },
+  const columns: Column<Exam>[] = [
     {
-      key: 'status',
-      header: 'Status',
-      render: (e) => <Badge>{e.status}</Badge>
+      key: 'name',
+      header: 'Exam',
+      render: (e) => (
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[#5b51ef]/10 text-[#5b51ef] flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4" />
+          </div>
+          <span className="font-semibold text-[#111827]">{e.name || 'Untitled Exam'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'term',
+      header: 'Term',
+      render: (e) =>
+        e.term ? (
+          <Badge variant="indigo">{e.term}</Badge>
+        ) : (
+          <span className="text-slate-300">—</span>
+        ),
+    },
+    {
+      key: 'academicYearId',
+      header: 'Academic Year',
+      render: (e) => (
+        <span className="inline-flex items-center gap-1.5 text-slate-600">
+          <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
+          {yearName(e.academicYearId) || '—'}
+        </span>
+      ),
     },
     {
       key: 'actions',
       header: 'Actions',
       render: (e) => (
-        <div className="flex gap-2">
-          {e.status === 'Graded' ? (
-            <button className="text-xs text-[#16a34a] hover:text-[#15803d] font-medium bg-[#dbf5e3] px-2 py-1 rounded">
-              View Results
-            </button>
-          ) : (
-            <button className="text-xs text-[#4f46e5] hover:text-[#4338ca] font-medium bg-[#e5e5fa] px-2 py-1 rounded">
-              Enter Marks
-            </button>
-          )}
-        </div>
+        <Link
+          href={`/exams/${e.id}`}
+          className="text-xs text-[#4f46e5] hover:text-[#4338ca] font-medium bg-[#e5e5fa] px-3 py-1.5 rounded-md transition"
+        >
+          View Details
+        </Link>
       ),
-    }
+    },
   ];
 
   return (
@@ -79,12 +104,18 @@ export default function ExamsPage() {
         <p className="text-sm text-[#6b7280]">Manage exam schedules, enter student results, and generate report cards</p>
       </div>
 
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-lg">
+          {error}
+        </div>
+      )}
+
       <ListToolbar
         searchValue={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Search by exam name, subject, or class..."
+        searchPlaceholder="Search by exam name, term, or academic year..."
+        actionHref="/exams/new"
         actionLabel="Create Exam"
-        onAction={() => alert('Create Exam modal placeholder')}
       />
 
       {loading ? (
@@ -94,7 +125,7 @@ export default function ExamsPage() {
           columns={columns}
           data={filteredExams}
           keyExtractor={(e) => e.id}
-          emptyMessage="No exams found."
+          emptyMessage="No exams found. Click 'Create Exam' to add one."
         />
       )}
     </div>

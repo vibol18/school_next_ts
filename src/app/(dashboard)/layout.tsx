@@ -5,19 +5,21 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { authApi } from "@/lib/api/auth";
+import { academicYearApi } from "@/lib/api/academic.api";
 import {
   Search,
   Calendar,
   PlusCircle,
-  Sun,
   Bell,
   MessageSquare,
-  BarChart2,
-  Maximize,
-  ChevronDown,
   User,
   Settings,
   LogOut,
+  Users,
+  GraduationCap,
+  FilePlus,
+  BookOpen,
+  ChevronRight,
 } from "lucide-react";
 
 // Spring Boot Backend Base URL
@@ -85,6 +87,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
+  const [academicYears, setAcademicYears] = useState<
+    { id: number; yearName: string; current: boolean }[]
+  >([]);
+  const [isYearOpen, setIsYearOpen] = useState(false);
+  const yearRef = useRef<HTMLDivElement>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -111,13 +121,37 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [router]);
 
   useEffect(() => {
+    let active = true;
+    academicYearApi
+      .getAll()
+      .then((years) => {
+        if (!active) return;
+        setAcademicYears(years);
+        const current = years.find((y: any) => y.current) || years[0];
+        if (current) setAcademicYear(current.yearName);
+      })
+      .catch(() => {
+        /* backend unavailable — keep placeholder */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
       }
+      if (yearRef.current && !yearRef.current.contains(event.target as Node)) {
+        setIsYearOpen(false);
+      }
     }
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setIsProfileOpen(false);
+      if (event.key === "Escape") {
+        setIsProfileOpen(false);
+        setIsYearOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
@@ -212,11 +246,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between shrink-0 gap-4">
 
           {/* Search Bar */}
-          <div className="relative w-72">
+          <div className="relative w-72 hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search"
+              placeholder="Search students, teachers…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchQuery.trim()) {
+                  router.push(`/students?q=${encodeURIComponent(searchQuery.trim())}`);
+                }
+              }}
               className="w-full pl-9 pr-10 py-2 text-[13px] rounded-lg border border-slate-200 bg-slate-50/60 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5b51ef]/20 focus:border-[#5b51ef] transition-colors"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 bg-white font-mono select-none">
@@ -228,46 +269,76 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2 border-l border-slate-200 pl-4">
 
             {/* Academic Year Selector */}
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-[12px] text-slate-600 font-semibold hover:bg-slate-50 hover:border-slate-300 transition-colors">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              <span>{academicYear}</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
-            </button>
+            <div className="relative" ref={yearRef}>
+              <button
+                onClick={() => setIsYearOpen((open) => !open)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-[12px] text-slate-600 font-semibold hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              >
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <span className="max-w-[130px] truncate">{academicYear}</span>
+                <ChevronRight
+                  className={`w-3 h-3 text-slate-400 transition-transform ${isYearOpen ? "rotate-90" : ""}`}
+                />
+              </button>
+              {isYearOpen && (
+                <div className="absolute right-0 top-[calc(100%+8px)] w-64 bg-white rounded-xl border border-slate-200 shadow-lg shadow-slate-900/5 py-2 z-50 animate-slide-in-up">
+                  <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Academic Years
+                  </p>
+                  {academicYears.length === 0 ? (
+                    <p className="px-4 py-2 text-xs text-slate-400">No academic years found.</p>
+                  ) : (
+                    academicYears.map((year) => (
+                      <button
+                        key={year.id}
+                        onClick={() => {
+                          setAcademicYear(year.yearName);
+                          setIsYearOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+                      >
+                        <span>{year.yearName}</span>
+                        {year.current && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                            Current
+                          </span>
+                        )}
+                      </button>
+                    ))
+                  )}
+                  <div className="h-px bg-slate-100 my-1" />
+                  <Link
+                    href="/academic/academic-years"
+                    onClick={() => setIsYearOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-[#5b51ef] hover:bg-slate-50 transition-colors"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                    Manage academic years
+                  </Link>
+                </div>
+              )}
+            </div>
 
-            {/* Language Flag Selector */}
-            <HeaderIconButton label="Change language">
-              <span className="text-sm">🌐</span>
-            </HeaderIconButton>
-
-            {/* Add / Quick Actions */}
-            <HeaderIconButton label="Quick add">
-              <PlusCircle className="w-4 h-4" />
-            </HeaderIconButton>
-
-            {/* Theme Toggle */}
-            <HeaderIconButton label="Toggle theme">
-              <Sun className="w-4 h-4" />
-            </HeaderIconButton>
+            {/* Quick Add */}
+            <Link href="/students/new" className="hidden sm:block">
+              <HeaderIconButton label="Quick add">
+                <PlusCircle className="w-4 h-4" />
+              </HeaderIconButton>
+            </Link>
 
             {/* Notification Bell */}
-            <HeaderIconButton label="Notifications" dotClassName="bg-rose-500">
-              <Bell className="w-4 h-4" />
-            </HeaderIconButton>
+            <Link href="/notifications">
+              <HeaderIconButton label="Notifications" dotClassName="bg-rose-500">
+                <Bell className="w-4 h-4" />
+              </HeaderIconButton>
+            </Link>
 
             {/* Messages */}
-            <HeaderIconButton label="Messages" dotClassName="bg-sky-400">
-              <MessageSquare className="w-4 h-4" />
-            </HeaderIconButton>
-
-            {/* Analytics */}
-            <HeaderIconButton label="Analytics">
-              <BarChart2 className="w-4 h-4" />
-            </HeaderIconButton>
-
-            {/* Fullscreen Toggle */}
-            <HeaderIconButton label="Toggle fullscreen">
-              <Maximize className="w-4 h-4" />
-            </HeaderIconButton>
+            <Link href="/communication/messages/inbox">
+              <HeaderIconButton label="Messages" dotClassName="bg-sky-400">
+                <MessageSquare className="w-4 h-4" />
+              </HeaderIconButton>
+            </Link>
 
             {/* User Profile + Dropdown */}
             <div className="relative ml-1" ref={profileRef}>
@@ -310,7 +381,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
               {/* Dropdown panel: shows name + role */}
               {isProfileOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] w-64 bg-white rounded-xl border border-slate-200 shadow-lg shadow-slate-900/5 py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="absolute right-0 top-[calc(100%+8px)] w-64 bg-white rounded-xl border border-slate-200 shadow-lg shadow-slate-900/5 py-2 z-50 animate-slide-in-up">
                   {/* Identity block */}
                   <div className="flex items-center gap-3 px-4 py-3">
                     <div className="w-11 h-11 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-gradient-to-br from-[#6a60f5] to-[#4238d1]">

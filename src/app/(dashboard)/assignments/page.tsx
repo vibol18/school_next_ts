@@ -76,8 +76,8 @@ export default function AssignmentsPage() {
 
   const filteredAssignments = assignments.filter(
     (a) =>
-      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.description.toLowerCase().includes(searchQuery.toLowerCase())
+      (a.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (a.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -161,10 +161,16 @@ export default function AssignmentsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-xs">
-                      {new Date(assignment.dueDate).toLocaleString([], {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
-                      })}
+                      {assignment.dueDate ? (
+                        (() => {
+                          const d = new Date(assignment.dueDate);
+                          return isNaN(d.getTime())
+                            ? assignment.dueDate
+                            : d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                        })()
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-xs">
                       {assignment.fileUrl ? (

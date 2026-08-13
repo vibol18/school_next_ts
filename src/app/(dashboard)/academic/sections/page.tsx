@@ -16,7 +16,6 @@ export default function SectionsPage() {
   const [formData, setFormData] = useState<Omit<Section, 'id'>>({
     name: '',
     classId: 0,
-    capacity: 30,
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -32,7 +31,7 @@ export default function SectionsPage() {
       setSectionsList(secData);
       setClassesList(clsData);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to fetch sections or classes.');
+      setError(err?.message || 'Failed to fetch sections or classes.');
     } finally {
       setLoading(false);
     }
@@ -44,7 +43,7 @@ export default function SectionsPage() {
 
   const openCreateModal = () => {
     setEditingSection(null);
-    setFormData({ name: '', classId: classesList.length > 0 ? classesList[0].id : 0, capacity: 30 });
+    setFormData({ name: '', classId: classesList.length > 0 ? classesList[0].id : 0 });
     setIsModalOpen(true);
   };
 
@@ -53,7 +52,6 @@ export default function SectionsPage() {
     setFormData({
       name: s.name,
       classId: s.classId,
-      capacity: s.capacity,
     });
     setIsModalOpen(true);
   };
@@ -70,7 +68,7 @@ export default function SectionsPage() {
       setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to save section.');
+      alert(err?.message || 'Failed to save section.');
     } finally {
       setIsSaving(false);
     }
@@ -82,7 +80,7 @@ export default function SectionsPage() {
       await sectionApi.delete(id);
       await loadData();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete section.');
+      alert(err?.message || 'Failed to delete section.');
     }
   };
 
@@ -130,7 +128,7 @@ export default function SectionsPage() {
                 <tr>
                   <th className="px-6 py-3.5">ID</th>
                   <th className="px-6 py-3.5">Section Name</th>
-                  <th className="px-6 py-3.5">Capacity</th>
+                  <th className="px-6 py-3.5">Class</th>
                   <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -139,8 +137,10 @@ export default function SectionsPage() {
                   <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4 font-mono text-xs text-slate-500">#{s.id}</td>
                     <td className="px-6 py-4 font-semibold text-slate-900">{s.name}</td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {s.capacity} students
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700">
+                        {getClassName(s.classId)}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
@@ -194,17 +194,7 @@ export default function SectionsPage() {
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Capacity</label>
-                <input
-                  type="number"
-                  required
-                  value={formData.capacity}
-                  onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none transition"
-                />
-              </div>
-              <div>
-                  <label className="block font-medium text-slate-700 mb-1">Select Class</label>
+                <label className="block font-medium text-slate-700 mb-1">Select Class</label>
                 {classesList.length === 0 ? (
                   <div className="p-3 text-amber-700 bg-amber-50 rounded-md border border-amber-200">
                     No classes available. Please create a class first.

@@ -78,7 +78,7 @@ export default function NotificationsPage() {
         {canCompose && !showCompose && (
           <button 
             onClick={() => setShowCompose(true)}
-            className="flex items-center gap-2 bg-[#534BEB] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-600 transition"
+            className="flex items-center gap-2 bg-[#5b51ef] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-600 transition"
           >
             <Plus size={16} /> New Alert
           </button>
@@ -102,7 +102,7 @@ export default function NotificationsPage() {
                 required 
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#534BEB] focus:ring-1 focus:ring-[#534BEB] outline-none"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#5b51ef] focus:ring-1 focus:ring-[#5b51ef] outline-none"
               />
             </div>
             <div>
@@ -112,7 +112,7 @@ export default function NotificationsPage() {
                 rows={3}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#534BEB] focus:ring-1 focus:ring-[#534BEB] outline-none"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#5b51ef] focus:ring-1 focus:ring-[#5b51ef] outline-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -121,7 +121,7 @@ export default function NotificationsPage() {
                 <select 
                   value={recipientType}
                   onChange={e => setRecipientType(e.target.value as RecipientType)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#534BEB] focus:ring-1 focus:ring-[#534BEB] outline-none"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#5b51ef] focus:ring-1 focus:ring-[#5b51ef] outline-none"
                 >
                   <option value="STUDENT">Student</option>
                   <option value="TEACHER">Teacher</option>
@@ -137,7 +137,7 @@ export default function NotificationsPage() {
                   value={recipientId}
                   onChange={e => setRecipientId(e.target.value)}
                   placeholder="Leave blank to broadcast to role"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#534BEB] focus:ring-1 focus:ring-[#534BEB] outline-none"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#5b51ef] focus:ring-1 focus:ring-[#5b51ef] outline-none"
                 />
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function NotificationsPage() {
               <button 
                 type="submit" 
                 disabled={createMutation.isPending}
-                className="bg-[#534BEB] text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-indigo-600 transition disabled:opacity-50"
+                className="bg-[#5b51ef] text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-indigo-600 transition disabled:opacity-50"
               >
                 {createMutation.isPending ? 'Sending...' : 'Send Notification'}
               </button>

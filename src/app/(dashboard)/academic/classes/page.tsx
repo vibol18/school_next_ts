@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { classApi, academicYearApi } from '@/lib/api';
-import { SchoolClass, AcademicYear } from '@/types/school.types';
+import { classApi } from '@/lib/api';
+import { SchoolClass } from '@/types/school.types';
 
 export default function ClassesPage() {
   const [classesList, setClassesList] = useState<SchoolClass[]>([]);
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +14,7 @@ export default function ClassesPage() {
   const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
   const [formData, setFormData] = useState<Omit<SchoolClass, 'id'>>({
     name: '',
-    academicYearId: 0,
+    code: '',
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -23,14 +22,10 @@ export default function ClassesPage() {
     try {
       setLoading(true);
       setError(null);
-      const [data, years] = await Promise.all([
-        classApi.getAll(),
-        academicYearApi.getAll()
-      ]);
+      const data = await classApi.getAll();
       setClassesList(data);
-      setAcademicYears(years);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to fetch classes.');
+      setError(err?.message || 'Failed to fetch classes.');
     } finally {
       setLoading(false);
     }
@@ -42,7 +37,7 @@ export default function ClassesPage() {
 
   const openCreateModal = () => {
     setEditingClass(null);
-    setFormData({ name: '', academicYearId: academicYears.length > 0 ? academicYears[0].id : 0 });
+    setFormData({ name: '', code: '' });
     setIsModalOpen(true);
   };
 
@@ -50,7 +45,7 @@ export default function ClassesPage() {
     setEditingClass(c);
     setFormData({
       name: c.name,
-      academicYearId: c.academicYearId,
+      code: c.code || '',
     });
     setIsModalOpen(true);
   };
@@ -67,7 +62,7 @@ export default function ClassesPage() {
       setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to save class.');
+      alert(err?.message || 'Failed to save class.');
     } finally {
       setIsSaving(false);
     }
@@ -79,7 +74,7 @@ export default function ClassesPage() {
       await classApi.delete(id);
       await loadData();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete class.');
+      alert(err?.message || 'Failed to delete class.');
     }
   };
 
@@ -122,7 +117,7 @@ export default function ClassesPage() {
                 <tr>
                   <th className="px-6 py-3.5">ID</th>
                   <th className="px-6 py-3.5">Class Name</th>
-                  <th className="px-6 py-3.5">Academic Year</th>
+                  <th className="px-6 py-3.5">Code</th>
                   <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -132,7 +127,13 @@ export default function ClassesPage() {
                     <td className="px-6 py-4 font-mono text-xs text-slate-500">#{c.id}</td>
                     <td className="px-6 py-4 font-semibold text-slate-900">{c.name}</td>
                     <td className="px-6 py-4">
-                      {academicYears.find(y => y.id === c.academicYearId)?.name || 'Unknown'}
+                      {c.code ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-slate-100 text-slate-600">
+                          {c.code}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
@@ -186,18 +187,14 @@ export default function ClassesPage() {
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Academic Year</label>
-                <select
-                  required
-                  value={formData.academicYearId}
-                  onChange={(e) => setFormData({ ...formData, academicYearId: Number(e.target.value) })}
+                <label className="block font-medium text-slate-700 mb-1">Class Code</label>
+                <input
+                  type="text"
+                  placeholder="e.g., G10"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none transition"
-                >
-                  <option value={0} disabled>Select Academic Year</option>
-                  {academicYears.map(y => (
-                    <option key={y.id} value={y.id}>{y.name}</option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">

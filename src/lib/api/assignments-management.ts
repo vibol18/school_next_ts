@@ -7,31 +7,22 @@ import {
 
 export const assignmentApi = {
   // GET /api/assignments
-  getAll: async (): Promise<Assignment[]> => {
-    const response = await apiClient.get<Assignment[]>('/api/assignments');
-    return response.data;
-  },
+  getAll: (): Promise<Assignment[]> =>
+    apiClient.get('/api/assignments'),
 
   // GET /api/assignments/{id}
-  getById: async (id: number): Promise<Assignment> => {
-    const response = await apiClient.get<Assignment>(`/api/assignments/${id}`);
-    return response.data;
-  },
+  getById: (id: number): Promise<Assignment> =>
+    apiClient.get(`/api/assignments/${id}`),
 
   // POST /api/assignments
-  create: async (data: AssignmentCreateInput): Promise<Assignment> => {
-    const response = await apiClient.post<Assignment>('/api/assignments', data);
-    return response.data;
-  },
+  create: (data: AssignmentCreateInput): Promise<Assignment> =>
+    apiClient.post('/api/assignments', data),
 
   // PUT /api/assignments/{id}
-  update: async (id: number, data: AssignmentUpdateInput): Promise<Assignment> => {
-    const response = await apiClient.put<Assignment>(`/api/assignments/${id}`, data);
-    return response.data;
-  },
+  update: (id: number, data: AssignmentUpdateInput): Promise<Assignment> =>
+    apiClient.put(`/api/assignments/${id}`, data),
 
   // DELETE /api/assignments/{id}
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/assignments/${id}`);
-  },
+  delete: (id: number): Promise<void> =>
+    apiClient.delete(`/api/assignments/${id}`),
 };

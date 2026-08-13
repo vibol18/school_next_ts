@@ -81,7 +81,7 @@ export default function RegisterPage() {
             placeholder="e.g. Vibol"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none transition focus:border-[#534BEB] focus:bg-white focus:ring-2 focus:ring-[#534BEB]/20"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none transition focus:border-[#5b51ef] focus:bg-white focus:ring-2 focus:ring-[#5b51ef]/20"
           />
         </div>
 
@@ -96,7 +96,7 @@ export default function RegisterPage() {
             placeholder="you@school.edu"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none transition focus:border-[#534BEB] focus:bg-white focus:ring-2 focus:ring-[#534BEB]/20"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none transition focus:border-[#5b51ef] focus:bg-white focus:ring-2 focus:ring-[#5b51ef]/20"
           />
         </div>
 
@@ -111,7 +111,7 @@ export default function RegisterPage() {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none transition focus:border-[#534BEB] focus:bg-white focus:ring-2 focus:ring-[#534BEB]/20"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none transition focus:border-[#5b51ef] focus:bg-white focus:ring-2 focus:ring-[#5b51ef]/20"
           />
         </div>
 
@@ -123,7 +123,7 @@ export default function RegisterPage() {
             id="role"
             value={role}
             onChange={(e) => setRole(e.target.value as Role)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none transition focus:border-[#534BEB] focus:bg-white focus:ring-2 focus:ring-[#534BEB]/20"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none transition focus:border-[#5b51ef] focus:bg-white focus:ring-2 focus:ring-[#5b51ef]/20"
           >
             {roleOptions.map((option) => (
               <option key={option} value={option}>
@@ -136,7 +136,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full rounded-2xl bg-[#534BEB] px-4 py-3 text-xs font-semibold text-white shadow-md shadow-[#534BEB]/20 transition hover:bg-[#4338CA] disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-2xl bg-[#5b51ef] px-4 py-3 text-xs font-semibold text-white shadow-md shadow-[#5b51ef]/20 transition hover:bg-[#4338ca] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? 'Registering...' : 'Register'}
         </button>
@@ -144,7 +144,7 @@ export default function RegisterPage() {
 
       <p className="mt-5 text-center text-xs text-slate-500">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-[#534BEB] hover:underline">
+        <Link href="/login" className="font-medium text-[#5b51ef] hover:underline">
           Log in
         </Link>
       </p>

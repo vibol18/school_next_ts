@@ -2,39 +2,38 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { examApi } from '@/lib/api/exam.api'; // Adjust path to your API file
-import type { Exam } from '@/types/school.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { examApi } from '@/lib/api/exam.api';
+import { academicYearApi } from '@/lib/api/academic.api';
+import type { Exam, AcademicYear } from '@/types/school.types';
 import {
   FilePlus,
   ArrowLeft,
   Calendar,
   BookOpen,
   Award,
-  Layers,
   Save,
   Loader2,
   AlertCircle,
 } from 'lucide-react';
 
 export default function NewExamPage() {
-  const router = Router();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Form State
-  const [title, setTitle] = useState('');
-  const [examType, setExamType] = useState<Exam['examType']>('MIDTERM');
+  const [name, setName] = useState('');
+  const [term, setTerm] = useState('');
   const [academicYearId, setAcademicYearId] = useState<number | ''>('');
-  const [classId, setClassId] = useState<number | ''>('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Mutation to create new exam
+  const { data: academicYears = [] } = useQuery<AcademicYear[]>({
+    queryKey: ['academic-years'],
+    queryFn: () => academicYearApi.getAll(),
+  });
+
   const createExamMutation = useMutation({
     mutationFn: (newExam: Omit<Exam, 'id'>) => examApi.create(newExam),
     onSuccess: () => {
-      // Invalidate exams query to refetch updated lists across the app
       queryClient.invalidateQueries({ queryKey: ['exams'] });
       router.push('/exams');
     },
@@ -49,33 +48,28 @@ export default function NewExamPage() {
     e.preventDefault();
     setErrorMessage(null);
 
-    // Basic Validation
-    if (!title.trim()) {
-      setErrorMessage('Exam title is required.');
+    if (!name.trim()) {
+      setErrorMessage('Exam name is required.');
+      return;
+    }
+    if (!term.trim()) {
+      setErrorMessage('Please enter the term, e.g. Term 1.');
       return;
     }
     if (!academicYearId) {
-      setErrorMessage('Please select or enter a valid Academic Year ID.');
-      return;
-    }
-    if (!classId) {
-      setErrorMessage('Please select or enter a valid Class ID.');
+      setErrorMessage('Please select an Academic Year.');
       return;
     }
 
     createExamMutation.mutate({
-      title,
-      examType,
+      name: name.trim(),
+      term: term.trim(),
       academicYearId: Number(academicYearId),
-      classId: Number(classId),
-      startDate,
-      endDate,
     });
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 p-4 sm:p-6">
-      {/* Top Header & Back Button */}
+    <div className="max-w-2xl mx-auto space-y-6 p-4 sm:p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -91,13 +85,12 @@ export default function NewExamPage() {
               Create New Exam
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Set up term tests, midterms, or final examinations for classes.
+              Set up term tests, midterms, or final examinations.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Error Alert Bar */}
       {errorMessage && (
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
           <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500" />
@@ -105,123 +98,79 @@ export default function NewExamPage() {
         </div>
       )}
 
-      {/* Main Form Box */}
-      <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Section 1: Basic Information */}
           <div className="space-y-4">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">
-              1. Exam Overview
+              Exam Details
             </h2>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Exam Title <span className="text-red-500">*</span>
+                Exam Name <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Midterm Examination Term 1"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5b51ef] focus:border-transparent transition"
-              />
+              <div className="relative">
+                <BookOpen className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Mid-Term Examinations"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5b51ef] focus:border-transparent transition"
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Exam Type <span className="text-red-500">*</span>
+                  Term <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Award className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <select
-                    value={examType}
-                    onChange={(e) => setExamType(e.target.value as Exam['examType'])}
+                    required
+                    value={term}
+                    onChange={(e) => setTerm(e.target.value)}
                     className="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#5b51ef]"
                   >
-                    <option value="MIDTERM">MIDTERM</option>
-                    <option value="FINAL">FINAL</option>
-                    <option value="FORMATIVE">FORMATIVE</option>
-                    <option value="SUMMATIVE">SUMMATIVE</option>
+                    <option value="">Select term...</option>
+                    <option value="Term 1">Term 1</option>
+                    <option value="Term 2">Term 2</option>
+                    <option value="Term 3">Term 3</option>
+                    <option value="Mid-Term">Mid-Term</option>
+                    <option value="Final">Final</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Academic Year ID <span className="text-red-500">*</span>
+                  Academic Year <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="number"
+                  <select
                     required
-                    placeholder="e.g. 1"
                     value={academicYearId}
                     onChange={(e) =>
                       setAcademicYearId(e.target.value === '' ? '' : Number(e.target.value))
                     }
-                    className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5b51ef]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Class ID <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <BookOpen className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="number"
-                    required
-                    placeholder="e.g. 10"
-                    value={classId}
-                    onChange={(e) =>
-                      setClassId(e.target.value === '' ? '' : Number(e.target.value))
-                    }
-                    className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5b51ef]"
-                  />
+                    className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#5b51ef]"
+                  >
+                    <option value="">Select year...</option>
+                    {academicYears.map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {year.yearName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Section 2: Dates */}
-          <div className="space-y-4 pt-2">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">
-              2. Schedule Duration
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5b51ef]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5b51ef]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Form Controls */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"

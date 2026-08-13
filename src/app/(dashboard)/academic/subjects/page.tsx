@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { subjectApi, classApi } from '@/lib/api';
-import { Subject, SchoolClass } from '@/types/school.types';
+import { subjectApi } from '@/lib/api';
+import { Subject } from '@/types/school.types';
 
 export default function SubjectsPage() {
   const [subjectsList, setSubjectsList] = useState<Subject[]>([]);
-  const [classesList, setClassesList] = useState<SchoolClass[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +15,6 @@ export default function SubjectsPage() {
   const [formData, setFormData] = useState<Omit<Subject, 'id'>>({
     name: '',
     code: '',
-    classId: 0,
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -24,14 +22,10 @@ export default function SubjectsPage() {
     try {
       setLoading(true);
       setError(null);
-      const [subjData, clsData] = await Promise.all([
-        subjectApi.getAll(),
-        classApi.getAll(),
-      ]);
+      const subjData = await subjectApi.getAll();
       setSubjectsList(subjData);
-      setClassesList(clsData);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to fetch subjects.');
+      setError(err?.message || 'Failed to fetch subjects.');
     } finally {
       setLoading(false);
     }
@@ -43,7 +37,7 @@ export default function SubjectsPage() {
 
   const openCreateModal = () => {
     setEditingSubject(null);
-    setFormData({ name: '', code: '', classId: classesList.length > 0 ? classesList[0].id : 0 });
+    setFormData({ name: '', code: '' });
     setIsModalOpen(true);
   };
 
@@ -52,7 +46,6 @@ export default function SubjectsPage() {
     setFormData({
       name: s.name,
       code: s.code,
-      classId: s.classId,
     });
     setIsModalOpen(true);
   };
@@ -69,7 +62,7 @@ export default function SubjectsPage() {
       setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to save subject.');
+      alert(err?.message || 'Failed to save subject.');
     } finally {
       setIsSaving(false);
     }
@@ -81,13 +74,8 @@ export default function SubjectsPage() {
       await subjectApi.delete(id);
       await loadData();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete subject.');
+      alert(err?.message || 'Failed to delete subject.');
     }
-  };
-
-  const getClassName = (classId: number) => {
-    const c = classesList.find((cls) => cls.id === classId);
-    return c ? c.name : `Unknown Class (${classId})`;
   };
 
   return (
@@ -130,7 +118,6 @@ export default function SubjectsPage() {
                   <th className="px-6 py-3.5">ID</th>
                   <th className="px-6 py-3.5">Subject Name</th>
                   <th className="px-6 py-3.5">Subject Code</th>
-                  <th className="px-6 py-3.5">Class</th>
                   <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -142,11 +129,6 @@ export default function SubjectsPage() {
                     <td className="px-6 py-4">
                       <span className="inline-block px-2.5 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-mono font-medium">
                         {s.code}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700">
-                        {getClassName(s.classId)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
@@ -210,33 +192,6 @@ export default function SubjectsPage() {
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none transition uppercase"
                 />
-              </div>
-
-              <div>
-                <label className="block font-medium text-slate-700 mb-1">Select Class</label>
-                {classesList.length === 0 ? (
-                  <div className="p-3 text-amber-700 bg-amber-50 rounded-md border border-amber-200">
-                    No classes available. Please create a class first.
-                  </div>
-                ) : (
-                  <select
-                    required
-                    value={formData.classId}
-                    onChange={(e) => setFormData({ ...formData, classId: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none transition bg-white"
-                  >
-                    {!editingSubject && formData.classId === 0 && (
-                      <option value="0" disabled>
-                        Select a Class
-                      </option>
-                    )}
-                    {classesList.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">

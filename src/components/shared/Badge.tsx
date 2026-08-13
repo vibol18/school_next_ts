@@ -44,7 +44,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   green:  'bg-[#dbf5e3] text-[#16a34a]',
   amber:  'bg-[#fcedd4] text-[#d97706]',
   red:    'bg-[#fde2e2] text-[#dc2626]',
-  indigo: 'bg-[#e5e5fa] text-[#4f46e5]',
+  indigo: 'bg-[#e5e5fa] text-[#5b51ef]',
   slate:  'bg-slate-100 text-slate-600',
 };
 

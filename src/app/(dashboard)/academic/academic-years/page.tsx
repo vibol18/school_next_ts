@@ -13,10 +13,10 @@ export default function AcademicYearsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);
   const [formData, setFormData] = useState<Omit<AcademicYear, 'id'>>({
-    name: '',
+    yearName: '',
     startDate: '',
     endDate: '',
-    isCurrent: false,
+    current: false,
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -39,17 +39,17 @@ export default function AcademicYearsPage() {
 
   const openCreateModal = () => {
     setEditingYear(null);
-    setFormData({ name: '', startDate: '', endDate: '', isCurrent: false });
+    setFormData({ yearName: '', startDate: '', endDate: '', current: false });
     setIsModalOpen(true);
   };
 
   const openEditModal = (year: AcademicYear) => {
     setEditingYear(year);
     setFormData({
-      name: year.name,
+      yearName: year.yearName,
       startDate: year.startDate.split('T')[0], // format date for input
       endDate: year.endDate.split('T')[0],
-      isCurrent: year.isCurrent,
+      current: year.current,
     });
     setIsModalOpen(true);
   };
@@ -130,13 +130,13 @@ export default function AcademicYearsPage() {
                 {academicYears.map((year) => (
                   <tr key={year.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4 font-mono text-xs text-slate-500">#{year.id}</td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">{year.name}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">{year.yearName}</td>
                     <td className="px-6 py-4 text-xs">
                       {new Date(year.startDate).toLocaleDateString()} -{' '}
                       {new Date(year.endDate).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
-                      {year.isCurrent ? (
+                      {year.current ? (
                         <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
                           Active Current Year
                         </span>
@@ -147,7 +147,7 @@ export default function AcademicYearsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                      {!year.isCurrent && (
+                      {!year.current && (
                         <button
                           onClick={() => handleSetCurrent(year.id)}
                           className="text-xs text-emerald-600 hover:text-emerald-900 bg-emerald-50 px-2.5 py-1.5 rounded-md font-medium transition"
@@ -193,8 +193,8 @@ export default function AcademicYearsPage() {
                   type="text"
                   required
                   placeholder="e.g., 2026-2027"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.yearName}
+                  onChange={(e) => setFormData({ ...formData, yearName: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none transition"
                 />
               </div>

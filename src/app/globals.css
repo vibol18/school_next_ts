@@ -1,4 +1,77 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 @import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f2f1fe;
+  --color-brand-100: #e5e3fd;
+  --color-brand-200: #c8c5fa;
+  --color-brand-300: #a5a0f6;
+  --color-brand-400: #837cf1;
+  --color-brand-500: #5b51ef;
+  --color-brand-600: #4b42db;
+  --color-brand-700: #3f37b8;
+  --color-brand-800: #352e93;
+  --color-brand-900: #2c2774;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  --shadow-card-hover: 0 8px 24px -6px rgb(15 23 42 / 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle fade/slide-in animation for dropdowns and modals */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Thin, subtle scrollbars */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgb(148 163 184 / 0.4);
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(148 163 184 / 0.6);
+}

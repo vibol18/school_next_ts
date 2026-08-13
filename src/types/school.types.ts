@@ -34,31 +34,28 @@ export interface User {
 // ─── ACADEMIC ────────────────────────────────────────────────
 export interface AcademicYear {
   id: number;
-  name: string;          // e.g. "2025-2026"
+  yearName: string;      // e.g. "2025-2026"
   startDate: string;     // ISO date "YYYY-MM-DD"
   endDate: string;
-  isCurrent: boolean;
+  current: boolean;
 }
 
 export interface SchoolClass {
   id: number;
   name: string;          // e.g. "Grade 10"
-  academicYearId: number;
+  code?: string;         // e.g. "G10"
 }
 
 export interface Section {
   id: number;
   name: string;          // e.g. "Section A"
   classId: number;
-  capacity: number;
 }
 
 export interface Subject {
   id: number;
   name: string;          // e.g. "Mathematics"
   code: string;          // e.g. "MATH101"
-  classId: number;
-  teacherId?: number;
 }
 
 export interface Enrollment {
@@ -136,11 +133,9 @@ export type ExamType = 'MIDTERM' | 'FINAL' | 'QUIZ' | 'ASSIGNMENT' | 'PRACTICAL'
 
 export interface Exam {
   id: number;
-  title: string;
+  name: string;
+  term: string;
   academicYearId: number;
-  startDate: string;
-  endDate: string;
-  examType: ExamType;
 }
 
 export interface ExamResult {

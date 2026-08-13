@@ -7,7 +7,7 @@ interface StatCardProps {
   icon?: React.ReactNode;
 }
 
-export function StatCard({ label, value, accentColor = '#4f46e5', icon }: StatCardProps) {
+export function StatCard({ label, value, accentColor = '#5b51ef', icon }: StatCardProps) {
   return (
     <div className="bg-white rounded-[10px] border border-[#e5e7eb] shadow-sm p-5 flex flex-col gap-3 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 rounded-t-[10px]" style={{ backgroundColor: accentColor }} />

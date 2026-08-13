@@ -58,18 +58,37 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-2xl ring-1 ring-slate-900/5 md:grid md:grid-cols-[1.2fr_1fr]">
-      <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-[#534BEB] to-indigo-600 p-10 text-white">
-        <div>
+      <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-[#5b51ef] to-[#4338ca] p-10 text-white relative overflow-hidden">
+        <div className="absolute -right-16 -top-20 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute right-20 -bottom-24 w-56 h-56 rounded-full bg-white/10 blur-xl" />
+        <div className="relative">
+          <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center text-white font-bold text-lg mb-4">
+            E
+          </div>
           <div className="text-2xl font-bold tracking-tight">EduCore</div>
           <p className="mt-3 text-xs leading-relaxed text-indigo-100/90 max-w-xs">
-            Manage your entire school in one place.
+            Manage your entire school in one place — students, teachers, classes, exams and more.
           </p>
+        </div>
+        <div className="relative space-y-3 text-indigo-100/80 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
+            Attendance & academic records
+          </div>
+          <div className="flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
+            Examinations & report cards
+          </div>
+          <div className="flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
+            Fees, library & communication
+          </div>
         </div>
       </div>
 
       <div className="p-8 sm:p-10 flex flex-col justify-center">
         <div className="mb-6">
-          <div className="text-[#534BEB] font-bold text-2xl tracking-tight mb-1">
+          <div className="text-[#5b51ef] font-bold text-2xl tracking-tight mb-1">
             Welcome back
           </div>
           <p className="text-xs text-slate-500">
@@ -94,7 +113,7 @@ export default function LoginPage() {
               placeholder="you@school.edu or username"
               value={usernameOrEmail}
               onChange={(e) => setUsernameOrEmail(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none focus:border-[#534BEB] focus:bg-white focus:ring-2 focus:ring-[#534BEB]/20"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none focus:border-[#5b51ef] focus:bg-white focus:ring-2 focus:ring-[#5b51ef]/20"
             />
           </div>
 
@@ -108,25 +127,25 @@ export default function LoginPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none focus:border-[#534BEB] focus:bg-white focus:ring-2 focus:ring-[#534BEB]/20"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 outline-none focus:border-[#5b51ef] focus:bg-white focus:ring-2 focus:ring-[#5b51ef]/20"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-2xl bg-[#534BEB] px-4 py-3 text-xs font-semibold text-white shadow-md transition hover:bg-[#4338CA] disabled:opacity-50"
+            className="w-full rounded-2xl bg-[#5b51ef] px-4 py-3 text-xs font-semibold text-white shadow-md shadow-[#5b51ef]/25 transition hover:bg-[#4338ca] disabled:opacity-50"
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <div className="mt-5 text-center text-xs text-slate-500 space-x-2">
-          <Link href="/forgot-password" className="font-medium text-[#534BEB] hover:underline">
+          <Link href="/forgot-password" className="font-medium text-[#5b51ef] hover:underline">
             Forgot password?
           </Link>
           <span>•</span>
-          <Link href="/register" className="font-medium text-[#534BEB] hover:underline">
+          <Link href="/register" className="font-medium text-[#5b51ef] hover:underline">
             Create account
           </Link>
         </div>

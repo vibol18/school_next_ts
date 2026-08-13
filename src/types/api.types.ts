@@ -23,23 +23,22 @@ export interface RegisterRequest {
 // ─────────────────────────────────────────────────────
 export interface AcademicYear {
   id: number;
-  name: string;
+  yearName: string;
   startDate: string;
   endDate: string;
-  isCurrent: boolean;
+  current: boolean;
 }
 
 export interface Class {
   id: number;
   name: string;
-  academicYearId: number;
+  code?: string;
 }
 
 export interface Section {
   id: number;
   name: string;
   classId: number;
-  capacity: number;
 }
 
 export interface Subject {
@@ -129,11 +128,9 @@ export interface Timetable {
 // ─────────────────────────────────────────────────────
 export interface Exam {
   id: number;
-  title: string;
+  name: string;
+  term: string;
   academicYearId: number;
-  startDate: string;
-  endDate: string;
-  examType: string;
 }
 
 export interface ExamResult {

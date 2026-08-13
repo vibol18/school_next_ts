@@ -4,15 +4,21 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { teacherApi } from '@/lib/api/teachers';
 import { Teacher } from '@/types/teacher.types';
+import { DataTable, Column } from '@/components/shared/DataTable';
+import { ListToolbar } from '@/components/shared/ListToolbar';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { GraduationCap, Pencil, Trash2, Eye } from 'lucide-react';
 
 export default function TeachersListPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   const fetchTeachers = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await teacherApi.getAll();
       setTeachers(data);
     } catch (err) {
@@ -36,69 +42,122 @@ export default function TeachersListPage() {
     }
   };
 
+  const filtered = teachers.filter((t) => {
+    const query = search.toLowerCase();
+    return (
+      (t.employeeId || '').toLowerCase().includes(query) ||
+      (t.qualification || '').toLowerCase().includes(query)
+    );
+  });
+
+  const columns: Column<Teacher>[] = [
+    {
+      key: 'employeeId',
+      header: 'Teacher',
+      render: (t) => (
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[#5b51ef]/10 text-[#5b51ef] flex items-center justify-center shrink-0">
+            <GraduationCap className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="font-semibold text-[#111827]">{t.employeeId}</div>
+            <div className="text-xs text-slate-400">ID #{t.id}</div>
+          </div>
+        </div>
+      ),
+    },
+    { key: 'qualification', header: 'Qualification', render: (t) => <span className="text-slate-600">{t.qualification || '—'}</span> },
+    {
+      key: 'experienceYears',
+      header: 'Experience',
+      render: (t) => (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/10">
+          {t.experienceYears ? `${t.experienceYears} yrs` : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'dateOfJoining',
+      header: 'Date Joined',
+      render: (t) => {
+        if (!t.dateOfJoining) return <span className="text-slate-300">—</span>;
+        const d = new Date(t.dateOfJoining);
+        return (
+          <span className="text-slate-600">
+            {!isNaN(d.getTime())
+              ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              : t.dateOfJoining}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (t) => (
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/teachers/${t.id}`}
+            className="inline-flex items-center gap-1.5 text-xs text-[#5b51ef] hover:text-[#4338ca] bg-[#5b51ef]/5 hover:bg-[#5b51ef]/10 px-2.5 py-1.5 rounded-md font-medium transition"
+          >
+            <Eye className="w-3 h-3" />
+            View
+          </Link>
+          <Link
+            href={`/teachers/${t.id}/edit`}
+            className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1.5 rounded-md font-medium transition"
+          >
+            <Pencil className="w-3 h-3" />
+            Edit
+          </Link>
+          <button
+            onClick={() => handleDelete(t.id)}
+            className="inline-flex items-center gap-1.5 text-xs text-rose-600 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-md font-medium transition"
+          >
+            <Trash2 className="w-3 h-3" />
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Teachers Directory</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Teachers Directory</h1>
           <p className="text-sm text-gray-500">Manage academic staff records and assignments</p>
         </div>
         <Link
           href="/teachers/new"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md text-sm transition"
+          className="inline-flex items-center gap-2 bg-[#5b51ef] hover:bg-[#4b42db] text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm shadow-sm"
         >
           + Add Teacher
         </Link>
       </div>
 
-      {error && <div className="p-4 bg-red-50 text-red-600 rounded-md text-sm">{error}</div>}
+      {error && <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+
+      <ListToolbar
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search by employee ID or qualification..."
+      />
 
       {loading ? (
-        <div className="text-center py-10 text-gray-500">Loading directory...</div>
+        <LoadingSpinner text="Loading directory..." />
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50 text-gray-700 border-b border-gray-200 uppercase text-xs">
-              <tr>
-                <th className="px-6 py-3">ID</th>
-                <th className="px-6 py-3">Employee ID</th>
-                <th className="px-6 py-3">Qualification</th>
-                <th className="px-6 py-3">Experience</th>
-                <th className="px-6 py-3">Date Joined</th>
-                <th className="px-6 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {teachers.map((t) => (
-                <tr key={t.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-mono text-xs">{t.id}</td>
-                  <td className="px-6 py-4 font-semibold text-gray-800">{t.employeeId}</td>
-                  <td className="px-6 py-4">{t.qualification}</td>
-                  <td className="px-6 py-4">{t.experienceYears} yrs</td>
-                  <td className="px-6 py-4">{t.dateOfJoining}</td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <Link href={`/teachers/${t.id}`} className="text-blue-600 hover:underline">
-                      View
-                    </Link>
-                    <Link href={`/teachers/${t.id}/edit`} className="text-amber-600 hover:underline">
-                      Edit
-                    </Link>
-                    <button onClick={() => handleDelete(t.id)} className="text-red-600 hover:underline">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {teachers.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="text-center py-8 text-gray-400">
-                    No teacher records found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={filtered}
+          keyExtractor={(t) => t.id}
+          emptyMessage={
+            search
+              ? `No teachers match "${search}".`
+              : 'No teacher records found. Click "Add Teacher" to create one.'
+          }
+        />
       )}
     </div>
   );

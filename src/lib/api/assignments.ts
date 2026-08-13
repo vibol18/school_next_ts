@@ -7,37 +7,21 @@ import {
 
 export const assignmentSubmissionApi = {
   // POST /api/assignment-submissions
-  submit: async (data: CreateSubmissionInput): Promise<AssignmentSubmission> => {
-    const response = await apiClient.post<AssignmentSubmission>('/api/assignment-submissions', data);
-    return response.data;
-  },
+  submit: (data: CreateSubmissionInput): Promise<AssignmentSubmission> =>
+    apiClient.post('/api/assignment-submissions', data),
 
   // PATCH /api/assignment-submissions/{id}/grade?marks={marks}&feedback={feedback}
-  grade: async (
+  grade: (
     id: number,
     params: GradeSubmissionQueryParams
-  ): Promise<AssignmentSubmission> => {
-    const response = await apiClient.patch<AssignmentSubmission>(
-      `/api/assignment-submissions/${id}/grade`,
-      null,
-      { params }
-    );
-    return response.data;
-  },
+  ): Promise<AssignmentSubmission> =>
+    apiClient.patch(`/api/assignment-submissions/${id}/grade`, null, { params }),
 
   // GET /api/assignment-submissions/student/{studentId}
-  getByStudent: async (studentId: number): Promise<AssignmentSubmission[]> => {
-    const response = await apiClient.get<AssignmentSubmission[]>(
-      `/api/assignment-submissions/student/${studentId}`
-    );
-    return response.data;
-  },
+  getByStudent: (studentId: number): Promise<AssignmentSubmission[]> =>
+    apiClient.get(`/api/assignment-submissions/student/${studentId}`),
 
   // GET /api/assignment-submissions/assignment/{assignmentId}
-  getByAssignment: async (assignmentId: number): Promise<AssignmentSubmission[]> => {
-    const response = await apiClient.get<AssignmentSubmission[]>(
-      `/api/assignment-submissions/assignment/${assignmentId}`
-    );
-    return response.data;
-  },
+  getByAssignment: (assignmentId: number): Promise<AssignmentSubmission[]> =>
+    apiClient.get(`/api/assignment-submissions/assignment/${assignmentId}`),
 };
