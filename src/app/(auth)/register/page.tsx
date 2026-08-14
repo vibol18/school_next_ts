@@ -27,7 +27,7 @@ export default function RegisterPage() {
       const [firstName, ...rest] = trimmedName.split(' ');
       const lastName = rest.length > 0 ? rest.join(' ') : firstName;
 
-      // Sending username, email, password, and role to match Spring Boot DTO
+      // Sending username, firstName, lastName, email, password, and role to match Spring Boot DTO
       await authApi.register({
         username: trimmedName,
         firstName,
@@ -35,7 +35,7 @@ export default function RegisterPage() {
         email: email.trim(),
         password,
         role,
-      } as any);
+      });
 
       setSuccessMsg('Registration successful. Redirecting to login…');
       setTimeout(() => router.push('/login'), 1500);

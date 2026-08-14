@@ -6,21 +6,37 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { authApi } from "@/lib/api/auth";
 import { academicYearApi } from "@/lib/api/academic.api";
+import { notificationApi } from "@/lib/api/notification.api";
+import { ChatWidget } from "@/components/layout/ChatWidget";
 import {
-  Search,
-  Calendar,
-  PlusCircle,
-  Bell,
-  MessageSquare,
-  User,
-  Settings,
-  LogOut,
+  LayoutDashboard,
+  ShieldCheck,
   Users,
+  UserRound,
   GraduationCap,
-  FilePlus,
+  School,
   BookOpen,
+  CalendarClock,
+  ClipboardCheck,
+  FileText,
+  Library,
+  Bus,
+  BedDouble,
+  Megaphone,
+  MessageSquare,
+  Shapes,
+  Map as MapIcon,
+  Settings,
+  Search,
+  Bell,
+  ChevronDown,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   ChevronRight,
+  type LucideIcon,
 } from "lucide-react";
+import { error, log } from "console";
 
 // Spring Boot Backend Base URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -28,48 +44,77 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 interface NavItem {
   name: string;
   href: string;
+  icon: LucideIcon;
   roles: string[];
 }
 
-const navItems: NavItem[] = [
-  { name: "Dashboard", href: "/dashboard", roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "Students", href: "/students", roles: ["ADMIN", "TEACHER"] },
-  { name: "Teachers", href: "/teachers", roles: ["ADMIN"] },
-  { name: "Academic Years", href: "/academic/academic-years", roles: ["ADMIN"] },
-  { name: "Classes", href: "/academic/classes", roles: ["ADMIN"] },
-  { name: "Sections", href: "/academic/sections", roles: ["ADMIN"] },
-  { name: "Subjects", href: "/academic/subjects", roles: ["ADMIN"] },
-  { name: "Attendance", href: "/attendance", roles: ["ADMIN", "TEACHER"] },
-  { name: "Timetable", href: "/timetable", roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "Exams & Results", href: "/exams", roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "Assignments", href: "/assignments", roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "Fees & Payments", href: "/fees/payments", roles: ["ADMIN", "STUDENT"] },
-  { name: "Library", href: "/library/books", roles: ["ADMIN"] },
-  { name: "Hostel & Transport", href: "/hostel/blocks", roles: ["ADMIN"] },
-  { name: "Communication", href: "/communication/notices", roles: ["ADMIN"] },
-  { name: "Settings", href: "/settings/profile", roles: ["ADMIN", "TEACHER", "STUDENT"] },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const ALL = ["ADMIN", "TEACHER", "STUDENT", "PARENT", "STAFF"];
+
+const navGroups: NavGroup[] = [
+  {
+    label: "Main Menu",
+    items: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ALL },
+      { name: "Admin", href: "/settings/users", icon: ShieldCheck, roles: ["ADMIN"] },
+      { name: "Students", href: "/students", icon: Users, roles: ["ADMIN", "TEACHER"] },
+      { name: "Parents", href: "/parents", icon: UserRound, roles: ["ADMIN", "TEACHER"] },
+      { name: "Teachers", href: "/teachers", icon: GraduationCap, roles: ["ADMIN"] },
+    ],
+  },
+  {
+    label: "Academics",
+    items: [
+      { name: "Class", href: "/academic/classes", icon: School, roles: ["ADMIN"] },
+      { name: "Subject", href: "/academic/subjects", icon: BookOpen, roles: ["ADMIN"] },
+      { name: "Class Routine", href: "/timetable", icon: CalendarClock, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+      { name: "Attendance", href: "/attendance", icon: ClipboardCheck, roles: ["ADMIN", "TEACHER"] },
+      { name: "Exam", href: "/exams", icon: FileText, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { name: "Library", href: "/library/books", icon: Library, roles: ["ADMIN"] },
+      { name: "Transport", href: "/transport/routes", icon: Bus, roles: ["ADMIN"] },
+      { name: "Hostel", href: "/hostel/blocks", icon: BedDouble, roles: ["ADMIN"] },
+      { name: "Notice", href: "/communication/notices", icon: Megaphone, roles: ["ADMIN"] },
+      { name: "Message", href: "/communication/messages/inbox", icon: MessageSquare, roles: ALL },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { name: "UI Elements", href: "/permissions", icon: Shapes, roles: ALL },
+      { name: "Map", href: "/files", icon: MapIcon, roles: ALL },
+      { name: "Account", href: "/settings/profile", icon: Settings, roles: ALL },
+    ],
+  },
 ];
 
-// Small, consistent icon-button used across the header
 function HeaderIconButton({
   children,
-  dotClassName,
+  badge,
   label,
 }: {
   children: ReactNode;
-  dotClassName?: string;
+  badge?: number;
   label: string;
 }) {
   return (
     <button
       aria-label={label}
-      className="relative w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 bg-white hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-colors"
+      className="relative w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 bg-white hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-colors"
     >
       {children}
-      {dotClassName && (
-        <span
-          className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ring-2 ring-white ${dotClassName}`}
-        />
+      {typeof badge === "number" && badge > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+          {badge > 99 ? "99+" : badge}
+        </span>
       )}
     </button>
   );
@@ -78,10 +123,12 @@ function HeaderIconButton({
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [collapsed, setCollapsed] = useState(false);
   const [username, setUsername] = useState("User");
   const [userRole, setUserRole] = useState<string>("STUDENT");
   const [userEmail, setUserEmail] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [academicYear, setAcademicYear] = useState("2024 / 2025");
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -105,7 +152,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const storedRole = localStorage.getItem("userRole") || "STUDENT";
     const storedName = localStorage.getItem("username") || "Admin User";
     const storedEmail = localStorage.getItem("userEmail") || "";
-    const storedAvatar = localStorage.getItem("userAvatar");
+    const storedAvatar = localStorage.getItem("userAvatar") || localStorage.getItem("userPhoto");
 
     setUserRole(storedRole.toUpperCase());
     setUsername(storedName);
@@ -117,6 +164,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       } else {
         setAvatarUrl(`${API_BASE_URL}${storedAvatar.startsWith("/") ? "" : "/"}${storedAvatar}`);
       }
+    }
+
+    const storedUserId = localStorage.getItem("userId");
+    const id = storedUserId ? parseInt(storedUserId, 10) : null;
+    if (id && storedRole) {
+      notificationApi
+        .getByRecipient(id, storedRole.toUpperCase())
+        .then((list) => {
+          const arr = Array.isArray(list) ? list : [];
+          setUnreadCount(arr.filter((n) => !n.isRead).length);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     }
   }, [router]);
 
@@ -130,8 +191,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         const current = years.find((y: any) => y.current) || years[0];
         if (current) setAcademicYear(current.yearName);
       })
-      .catch(() => {
-        /* backend unavailable — keep placeholder */
+      .catch((error) => {
+       console.log(error);
+       
       });
     return () => {
       active = false;
@@ -174,79 +236,138 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   };
 
-  const visibleNavItems = navItems.filter((item) =>
-    item.roles.includes(userRole)
-  );
-
-  const roleStyles: Record<string, string> = {
-    ADMIN: "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200",
-    TEACHER: "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200",
-    STUDENT: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
-  };
+  const isActive = (href: string) =>
+    href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-[248px] bg-[#12131f] text-[#9ca3af] flex flex-col shrink-0 overflow-y-auto select-none">
-        <div className="pt-7 pb-6 px-6 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#5b51ef] flex items-center justify-center shrink-0">
-            <span className="text-white font-bold text-sm">E</span>
-          </div>
-          <div className="flex flex-col leading-tight">
-            <h1 className="text-[16px] font-bold text-white tracking-wide">
-              EduCore
-            </h1>
-            <span className="text-[10px] text-[#6b7280] font-medium">
-              School Management
-            </span>
-          </div>
+    <div className="flex h-screen bg-slate-100 font-sans text-slate-800 overflow-hidden">
+      {/* ── Sidebar ── */}
+      <aside
+        className={`bg-[#0f172a] text-slate-400 flex flex-col shrink-0 transition-all duration-200 ${
+          collapsed ? "w-[76px]" : "w-[260px]"
+        }`}
+      >
+        {/* Brand */}
+        <div
+          className={`h-16 flex items-center gap-3 border-b border-white/[0.06] px-4 shrink-0 ${
+            collapsed ? "justify-center px-0" : "justify-between"
+          }`}
+        >
+          {!collapsed && (
+            <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
+              <span className="w-9 h-9 rounded-xl bg-accent-500 flex items-center justify-center shrink-0 shadow-lg shadow-accent-500/30">
+                <span className="text-white font-black text-base">A</span>
+              </span>
+              <span className="text-[19px] font-extrabold tracking-wide text-white">
+                AKKHUR
+              </span>
+            </Link>
+          )}
+          {collapsed && (
+            <Link href="/dashboard" className="flex items-center justify-center w-9 h-9 rounded-xl bg-accent-500 shadow-lg shadow-accent-500/30">
+              <span className="text-white font-black text-base">A</span>
+            </Link>
+          )}
+          {!collapsed && (
+            <button
+              onClick={() => setCollapsed(true)}
+              aria-label="Collapse sidebar"
+              className="text-slate-500 hover:text-accent-400 transition-colors"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+          )}
+          {collapsed && (
+            <button
+              onClick={() => setCollapsed(false)}
+              aria-label="Expand sidebar"
+              className="absolute top-1/2 -right-3 -translate-y-1/2 w-6 h-6 rounded-full bg-[#1e293b] border border-white/10 text-slate-300 hover:text-accent-400 flex items-center justify-center z-10"
+            >
+              <PanelLeftOpen className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-        <nav className="flex-1 px-3 space-y-0.5 mt-1">
-          {visibleNavItems.map((item) => {
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(item.href);
 
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 space-y-6">
+          {navGroups.map((group) => {
+            const visible = group.items.filter((item) => item.roles.includes(userRole));
+            if (visible.length === 0) return null;
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13px] font-medium transition-colors duration-150 ${isActive
-                    ? "bg-[#5b51ef] text-white shadow-[0_1px_2px_rgba(0,0,0,0.25)]"
-                    : "text-[#8b93a3] hover:text-slate-100 hover:bg-white/[0.06]"
-                  }`}
-              >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${isActive ? "bg-white" : "bg-[#454a58] group-hover:bg-[#6b7280]"
-                    }`}
-                />
-                <span className="truncate">{item.name}</span>
-              </Link>
+              <div key={group.label}>
+                {!collapsed && (
+                  <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    {group.label}
+                  </p>
+                )}
+                <div className="space-y-0.5">
+                  {visible.map((item) => {
+                    const active = isActive(item.href);
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        title={collapsed ? item.name : undefined}
+                        className={`relative flex items-center gap-3 rounded-lg text-[13px] font-medium transition-colors duration-150 ${
+                          collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
+                        } ${
+                          active
+                            ? "bg-accent-500/15 text-accent-400"
+                            : "text-slate-400 hover:text-white hover:bg-white/[0.06]"
+                        }`}
+                      >
+                        {active && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-accent-500" />
+                        )}
+                        <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? "text-accent-400" : ""}`} />
+                        {!collapsed && <span className="truncate">{item.name}</span>}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </nav>
 
-        {/* Logout Button */}
-        <div className="p-3 border-t border-white/[0.08]">
+        {/* Logout */}
+        <div className="p-3 border-t border-white/[0.06]">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 text-[13px] font-medium text-[#8b93a3] hover:text-rose-400 transition-colors px-3.5 py-2.5 rounded-lg hover:bg-white/[0.06]"
+            title={collapsed ? "Sign Out" : undefined}
+            className={`w-full flex items-center gap-3 text-[13px] font-medium text-slate-400 hover:text-rose-400 transition-colors rounded-lg hover:bg-white/[0.06] ${
+              collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
+            }`}
           >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            <LogOut className="w-[18px] h-[18px] shrink-0" />
+            {!collapsed && <span>Sign Out</span>}
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* ── Main Content Area ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-
         {/* Top Navigation Header */}
-        <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between shrink-0 gap-4">
+        <header className="h-16 bg-white border-b border-slate-200 px-5 flex items-center justify-between gap-4 shrink-0">
+          {/* Title + Breadcrumb */}
+          <div className="min-w-0">
+            <h1 className="text-[17px] font-bold text-slate-900 leading-tight truncate">
+              Admin Dashboard
+            </h1>
+            <nav className="text-[11px] text-slate-400 flex items-center gap-1 truncate">
+              <Link href="/dashboard" className="hover:text-accent-600 transition-colors">
+                Home
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <span className="text-accent-600 font-medium capitalize">
+                {pathname.split("/").filter(Boolean).pop() || "Dashboard"}
+              </span>
+            </nav>
+          </div>
 
-          {/* Search Bar */}
-          <div className="relative w-72 hidden md:block">
+          {/* Global Search */}
+          <div className="relative w-64 lg:w-80 hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
@@ -258,30 +379,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   router.push(`/students?q=${encodeURIComponent(searchQuery.trim())}`);
                 }
               }}
-              className="w-full pl-9 pr-10 py-2 text-[13px] rounded-lg border border-slate-200 bg-slate-50/60 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5b51ef]/20 focus:border-[#5b51ef] transition-colors"
+              className="w-full pl-9 pr-4 py-2 text-[13px] rounded-xl border border-slate-200 bg-slate-50 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-500/25 focus:border-accent-500 transition-colors"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 bg-white font-mono select-none">
-              ⌘K
-            </div>
           </div>
 
-          {/* Header Action Controls */}
-          <div className="flex items-center gap-2 border-l border-slate-200 pl-4">
-
+          {/* Right controls */}
+          <div className="flex items-center gap-2.5">
             {/* Academic Year Selector */}
-            <div className="relative" ref={yearRef}>
+            <div className="relative hidden lg:block" ref={yearRef}>
               <button
                 onClick={() => setIsYearOpen((open) => !open)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-[12px] text-slate-600 font-semibold hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-[12px] text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
               >
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
                 <span className="max-w-[130px] truncate">{academicYear}</span>
-                <ChevronRight
-                  className={`w-3 h-3 text-slate-400 transition-transform ${isYearOpen ? "rotate-90" : ""}`}
+                <ChevronDown
+                  className={`w-3 h-3 text-slate-400 transition-transform ${isYearOpen ? "rotate-180" : ""}`}
                 />
               </button>
               {isYearOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] w-64 bg-white rounded-xl border border-slate-200 shadow-lg shadow-slate-900/5 py-2 z-50 animate-slide-in-up">
+                <div className="absolute right-0 top-[calc(100%+8px)] w-64 bg-white rounded-xl border border-slate-200 shadow-lg py-2 z-50 animate-slide-in-up">
                   <p className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     Academic Years
                   </p>
@@ -295,7 +411,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                           setAcademicYear(year.yearName);
                           setIsYearOpen(false);
                         }}
-                        className="w-full flex items-center justify-between px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+                        className="w-full flex items-center justify-between px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-50 transition-colors"
                       >
                         <span>{year.yearName}</span>
                         {year.current && (
@@ -306,53 +422,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       </button>
                     ))
                   )}
-                  <div className="h-px bg-slate-100 my-1" />
-                  <Link
-                    href="/academic/academic-years"
-                    onClick={() => setIsYearOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-[12px] font-semibold text-[#5b51ef] hover:bg-slate-50 transition-colors"
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                    Manage academic years
-                  </Link>
                 </div>
               )}
             </div>
 
-            {/* Quick Add */}
-            <Link href="/students/new" className="hidden sm:block">
-              <HeaderIconButton label="Quick add">
-                <PlusCircle className="w-4 h-4" />
-              </HeaderIconButton>
-            </Link>
-
-            {/* Notification Bell */}
+            {/* Notifications */}
             <Link href="/notifications">
-              <HeaderIconButton label="Notifications" dotClassName="bg-rose-500">
-                <Bell className="w-4 h-4" />
+              <HeaderIconButton label="Notifications" badge={unreadCount}>
+                <Bell className="w-[18px] h-[18px]" />
               </HeaderIconButton>
             </Link>
 
-            {/* Messages */}
-            <Link href="/communication/messages/inbox">
-              <HeaderIconButton label="Messages" dotClassName="bg-sky-400">
-                <MessageSquare className="w-4 h-4" />
-              </HeaderIconButton>
-            </Link>
-
-            {/* User Profile + Dropdown */}
+            {/* User Profile Badge + Dropdown */}
             <div className="relative ml-1" ref={profileRef}>
               <button
                 onClick={() => setIsProfileOpen((open) => !open)}
                 aria-expanded={isProfileOpen}
                 aria-haspopup="true"
-                className={`flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-lg border transition-colors ${isProfileOpen
-                    ? "border-[#5b51ef]/40 bg-[#5b51ef]/5"
-                    : "border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300"
-                  }`}
+                className={`flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-xl border transition-colors ${
+                  isProfileOpen
+                    ? "border-accent-500/40 bg-accent-50"
+                    : "border-slate-200 bg-white hover:bg-slate-50"
+                }`}
               >
-                <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-gradient-to-br from-[#6a60f5] to-[#4238d1]">
+                <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-accent-500/30 shrink-0 bg-gradient-to-br from-accent-400 to-accent-600">
                   {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={avatarUrl}
                       alt={username}
@@ -369,28 +464,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   <span className="text-[13px] font-semibold text-slate-800 max-w-[110px] truncate">
                     {username}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    {userRole.charAt(0) + userRole.slice(1).toLowerCase()}
+                  <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">
+                    {userRole}
                   </span>
                 </div>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isProfileOpen ? "rotate-180" : ""
-                    }`}
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isProfileOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
-              {/* Dropdown panel: shows name + role */}
               {isProfileOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] w-64 bg-white rounded-xl border border-slate-200 shadow-lg shadow-slate-900/5 py-2 z-50 animate-slide-in-up">
-                  {/* Identity block */}
+                <div className="absolute right-0 top-[calc(100%+8px)] w-64 bg-white rounded-xl border border-slate-200 shadow-lg py-2 z-50 animate-slide-in-up">
                   <div className="flex items-center gap-3 px-4 py-3">
-                    <div className="w-11 h-11 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-gradient-to-br from-[#6a60f5] to-[#4238d1]">
+                    <div className="w-11 h-11 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-gradient-to-br from-accent-400 to-accent-600">
                       {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt={username}
-                          className="w-full h-full object-cover"
-                        />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm">
                           {username.charAt(0).toUpperCase()}
@@ -398,42 +487,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-semibold text-slate-800 truncate">
-                        {username}
-                      </p>
+                      <p className="text-[13px] font-semibold text-slate-800 truncate">{username}</p>
                       {userEmail ? (
                         <p className="text-[11px] text-slate-400 truncate">{userEmail}</p>
                       ) : null}
-                      <span
-                        className={`inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${roleStyles[userRole] ?? "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
-                          }`}
-                      >
+                      <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide bg-accent-100 text-accent-700">
                         {userRole}
                       </span>
                     </div>
                   </div>
-
                   <div className="h-px bg-slate-100 my-1" />
-
                   <Link
                     href="/settings/profile"
                     onClick={() => setIsProfileOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors"
-                  >
-                    <User className="w-4 h-4 text-slate-400" />
-                    View profile
-                  </Link>
-                  <Link
-                    href="/settings/profile"
-                    onClick={() => setIsProfileOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+                    className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-50 transition-colors"
                   >
                     <Settings className="w-4 h-4 text-slate-400" />
                     Account settings
                   </Link>
-
                   <div className="h-px bg-slate-100 my-1" />
-
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-rose-500 hover:bg-rose-50 transition-colors"
@@ -448,8 +520,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-8 overflow-y-auto">{children}</main>
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">{children}</main>
       </div>
+
+      {/* Floating chat widget */}
+      <ChatWidget />
     </div>
   );
 }

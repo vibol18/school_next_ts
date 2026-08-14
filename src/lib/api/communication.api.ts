@@ -39,17 +39,23 @@ export const noticeApi = {
 
 // ── Messages ───────────────────────────────────────────
 export const messageApi = {
-  getAll: (): Promise<Message[]> =>
-    apiClient.get('/api/messages'),
+  getInbox: (userId: number): Promise<Message[]> =>
+    apiClient.get(`/api/messages/inbox/${userId}`),
 
-  getById: (id: number): Promise<Message> =>
-    apiClient.get(`/api/messages/${id}`),
+  getSent: (userId: number): Promise<Message[]> =>
+    apiClient.get(`/api/messages/sent/${userId}`),
 
-  getInbox: (receiver?: string): Promise<Message[]> =>
-    apiClient.get('/api/messages/inbox', { params: receiver ? { receiver } : undefined }),
+  getConversation: (userId: number, otherUserId: number): Promise<Message[]> =>
+    apiClient.get(`/api/messages/conversation/${userId}/${otherUserId}`),
 
-  send: (data: Omit<Message, 'id' | 'isRead' | 'sentAt'>): Promise<Message> =>
-    apiClient.post('/api/messages', data),
+  getUnreadCount: (userId: number): Promise<number> =>
+    apiClient.get(`/api/messages/unread-count/${userId}`),
+
+  send: (data: { receiverId: number; subject: string; body: string }): Promise<Message> =>
+    apiClient.post('/api/messages/send', data),
+
+  markAsRead: (id: number): Promise<Message> =>
+    apiClient.patch(`/api/messages/${id}/read`),
 
   delete: (id: number): Promise<void> =>
     apiClient.delete(`/api/messages/${id}`),

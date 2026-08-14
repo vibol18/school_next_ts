@@ -1,11 +1,12 @@
 import { apiClient } from "./client";
+import type { SchoolClass, Section, Subject, AcademicYear } from "@/types/school.types";
 
 // Classes
 export const classesApi = {
-  getAll: async () => await apiClient.get("/api/classes"),
-  getById: async (id: string | number) => await apiClient.get(`/api/classes/${id}`),
-  getSubjects: async (classId: string | number) => await apiClient.get(`/api/classes/${classId}/subjects`),
-  getSections: async (classId: string | number) => await apiClient.get(`/api/classes/${classId}/sections`),
+  getAll: async (): Promise<SchoolClass[]> => await apiClient.get("/api/classes"),
+  getById: async (id: string | number): Promise<SchoolClass> => await apiClient.get(`/api/classes/${id}`),
+  getSubjects: async (classId: string | number): Promise<Subject[]> => await apiClient.get(`/api/classes/${classId}/subjects`),
+  getSections: async (classId: string | number): Promise<Section[]> => await apiClient.get(`/api/classes/${classId}/sections`),
   create: async (data: any) => await apiClient.post("/api/classes", data),
   update: async (id: string | number, data: any) => await apiClient.put(`/api/classes/${id}`, data),
   delete: async (id: string | number) => await apiClient.delete(`/api/classes/${id}`),
@@ -13,8 +14,8 @@ export const classesApi = {
 
 
 export const sectionsApi = {
-  getAll: async () => await apiClient.get("/api/sections"),
-  getById: async (id: string | number) => await apiClient.get(`/api/sections/${id}`),
+  getAll: async (): Promise<Section[]> => await apiClient.get("/api/sections"),
+  getById: async (id: string | number): Promise<Section> => await apiClient.get(`/api/sections/${id}`),
   create: async (data: any) => await apiClient.post("/api/sections", data),
   update: async (id: string | number, data: any) => await apiClient.put(`/api/sections/${id}`, data),
   delete: async (id: string | number) => await apiClient.delete(`/api/sections/${id}`),
@@ -22,8 +23,8 @@ export const sectionsApi = {
 
 
 export const subjectsApi = {
-  getAll: async () => await apiClient.get("/api/subjects"),
-  getById: async (id: string | number) => await apiClient.get(`/api/subjects/${id}`),
+  getAll: async (): Promise<Subject[]> => await apiClient.get("/api/subjects"),
+  getById: async (id: string | number): Promise<Subject> => await apiClient.get(`/api/subjects/${id}`),
   create: async (data: any) => await apiClient.post("/api/subjects", data),
   update: async (id: string | number, data: any) => await apiClient.put(`/api/subjects/${id}`, data),
   delete: async (id: string | number) => await apiClient.delete(`/api/subjects/${id}`),
@@ -31,8 +32,8 @@ export const subjectsApi = {
 
 
 export const academicYearsApi = {
-  getAll: async () => await apiClient.get("/api/academic-years"),
-  getById: async (id: string | number) => await apiClient.get(`/api/academic-years/${id}`),
+  getAll: async (): Promise<AcademicYear[]> => await apiClient.get("/api/academic-years"),
+  getById: async (id: string | number): Promise<AcademicYear> => await apiClient.get(`/api/academic-years/${id}`),
   create: async (data: any) => await apiClient.post("/api/academic-years", data),
   update: async (id: string | number, data: any) => await apiClient.put(`/api/academic-years/${id}`, data),
   setCurrent: async (id: string | number) => await apiClient.patch(`/api/academic-years/${id}/set-current`),

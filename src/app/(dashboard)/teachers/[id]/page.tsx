@@ -37,9 +37,19 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ id: st
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center border-b pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Teacher Profile</h1>
-          <p className="text-sm text-gray-500">Employee ID: {teacher.employeeId}</p>
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl font-bold overflow-hidden shrink-0">
+            {teacher.profilePhoto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={teacher.profilePhoto} alt={teacher.employeeId} className="w-full h-full object-cover" />
+            ) : (
+              teacher.employeeId?.charAt(0) || 'T'
+            )}
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Teacher Profile</h1>
+            <p className="text-sm text-gray-500">Employee ID: {teacher.employeeId}</p>
+          </div>
         </div>
         <Link
           href={`/teachers/${teacher.id}/timetable`}

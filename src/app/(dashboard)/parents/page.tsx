@@ -26,8 +26,8 @@ export default function ParentsPage() {
     async function loadParents() {
       try {
         const response = await parentsApi.getAll();
-        // Fallback to empty array if response.data is undefined, mapping realistically
-        const mappedData: Parent[] = (response.data || []).map((p: any) => ({
+        // The client already unwraps the HTTP body, so the response IS the list
+        const mappedData: Parent[] = (Array.isArray(response) ? response : []).map((p: any) => ({
           id: p.id,
           firstName: p.firstName || 'Unknown',
           lastName: p.lastName || '',

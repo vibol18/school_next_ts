@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { studentsApi } from '@/lib/api/students';
 
 export default function StudentDetailPage() {
@@ -38,15 +39,28 @@ export default function StudentDetailPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header Profile Card */}
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {profileData.firstName || 'Unknown'} {profileData.lastName || ''}
-          </h1>
-          <p className="text-sm text-gray-500">Admission No: {profileData.admissionNumber || 'N/A'}</p>
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#6a60f5] to-[#4238d1] text-white flex items-center justify-center text-xl font-bold overflow-hidden shrink-0">
+            {profileData.profilePhoto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profileData.profilePhoto} alt="Student" className="w-full h-full object-cover" />
+            ) : (
+              `${profileData.firstName?.charAt(0) || ''}${profileData.lastName?.charAt(0) || ''}`.toUpperCase() || 'S'
+            )}
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {profileData.firstName || 'Unknown'} {profileData.lastName || ''}
+            </h1>
+            <p className="text-sm text-gray-500">Admission No: {profileData.admissionNumber || 'N/A'}</p>
+          </div>
         </div>
-        <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100">
-          Student ID: #{profileData.id || 'N/A'}
-        </span>
+        <Link
+          href={`/students/${profileData.id}/edit`}
+          className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Edit Student
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

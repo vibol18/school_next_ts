@@ -295,12 +295,23 @@ export interface Notice {
 
 export interface Message {
   id: number;
+  senderId?: number;
   senderName: string;
+  receiverId?: number;
   receiverName: string;
   subject: string;
   body: string;
   isRead: boolean;
   sentAt: string;
+}
+
+export interface UserRecipient {
+  id: number;
+  username: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string;
+  role: string;
 }
 
 export type LeaveStatus = 'PENDING' | 'APPROVED' | 'REJECTED';

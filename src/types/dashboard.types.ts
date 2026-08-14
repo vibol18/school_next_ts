@@ -1,0 +1,29 @@
+export interface DashboardStats {
+  totalStudents: number;
+  totalTeachers: number;
+  totalStaff: number;
+  totalClasses: number;
+  totalSections: number;
+  totalSubjects: number;
+  totalEnrollments: number;
+  totalParents: number;
+  totalUsers: number;
+  feesCollected: number;
+  feesPending: number;
+  feeCategories: number;
+  booksAvailable: number;
+  booksIssued: number;
+  overdueBooks: number;
+  attendanceToday: number;
+  presentToday: number;
+  absentToday: number;
+  attendanceRateToday: number;
+  examsUpcoming: number;
+  assignmentsDue: number;
+  hostelRooms: number;
+  hostelRoomsOccupied: number;
+  transportRoutes: number;
+  activeNotices: number;
+  upcomingEvents: number;
+  unreadNotifications: number;
+}

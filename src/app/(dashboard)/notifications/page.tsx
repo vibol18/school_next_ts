@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi } from '@/lib/api/notification.api';
 import type { Notification, RecipientType } from '@/types/school.types';
 import { Bell, Check, Trash2, Plus, X } from 'lucide-react';
+import { Pagination } from '@/components/shared/Pagination';
+import { usePagination } from '@/lib/hooks/usePagination';
 
 export default function NotificationsPage() {
   const queryClient = useQueryClient();
@@ -67,6 +69,8 @@ export default function NotificationsPage() {
   };
 
   const canCompose = userRole === 'ADMIN' || userRole === 'TEACHER';
+
+  const { page, setPage, pagedItems, totalItems } = usePagination(notifications);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -167,7 +171,7 @@ export default function NotificationsPage() {
       ) : (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
           <ul className="divide-y divide-slate-100">
-            {notifications.map((notif) => (
+            {pagedItems.map((notif) => (
               <li key={notif.id} className="p-4 hover:bg-slate-50 transition flex gap-4 items-start group">
                 <div className="mt-1 flex-shrink-0 h-10 w-10 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center">
                   <Bell size={18} />
@@ -198,6 +202,7 @@ export default function NotificationsPage() {
               </li>
             ))}
           </ul>
+          <Pagination page={page} pageSize={10} totalItems={totalItems} onPageChange={setPage} />
         </div>
       )}
     </div>

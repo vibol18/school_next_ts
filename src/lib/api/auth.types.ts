@@ -1,14 +1,8 @@
-// Matches com.example.real_school.common.dto.ApiResponse<T>
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
-
-// DTOs matching your backend
+// DTOs matching the backend (com.example.real_school.auth.dto.*)
 import { Role } from '@/lib/utils/roles';
 
 export interface RegisterRequest {
+  username: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -34,16 +28,30 @@ export interface ResetPasswordRequest {
   newPassword: string;
 }
 
-// Matches com.example.real_school.auth.dto.LoginResponse
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  role: string;
+  profilePhoto?: string | null;
+}
+
+// Matches com.example.real_school.auth.dto.LoginResponse (raw body, no envelope)
 export interface LoginResponse {
+  userId: number;
+  username: string;
+  email: string;
+  role: string;
   accessToken: string;
   refreshToken: string;
   tokenType?: string;
-  user?: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
+  expiresIn: number;
+  user: AuthUser;
+}
+
+// Matches com.example.real_school.auth.controller.AuthController message responses
+export interface MessageResponse {
+  message: string;
 }

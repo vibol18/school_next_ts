@@ -19,7 +19,7 @@ export default function AttendancePage() {
     sectionsApi.getAll().then((data) => {
       const list = Array.isArray(data) ? data : [];
       setSections(list);
-      if (list.length > 0) setSelectedSection(list[0].id);
+      if (list.length > 0) setSelectedSection(String(list[0].id));
     });
   }, []);
 

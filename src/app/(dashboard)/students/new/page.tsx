@@ -43,20 +43,22 @@ export default function NewStudentPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
         {mutation.isError && (
-          <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
-            Failed to save student record. Please try again.
+          <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
+            {mutation.error instanceof Error
+              ? mutation.error.message
+              : 'Failed to save student record. Please try again.'}
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">First Name</label>
-            <input {...register('firstName')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input {...register('firstName')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef]" />
             {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Last Name</label>
-            <input {...register('lastName')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input {...register('lastName')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef]" />
             {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>}
           </div>
         </div>
@@ -64,31 +66,31 @@ export default function NewStudentPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Username</label>
-            <input {...register('username')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input {...register('username')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef]" />
             {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Email</label>
-            <input {...register('email')} type="email" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input {...register('email')} type="email" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef]" />
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
           </div>
         </div>
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Password</label>
-          <input {...register('password')} type="password" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <input {...register('password')} type="password" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef]" />
           {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Admission Number</label>
-            <input {...register('admissionNumber')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input {...register('admissionNumber')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef]" />
             {errors.admissionNumber && <p className="text-xs text-red-500 mt-1">{errors.admissionNumber.message}</p>}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Gender</label>
-            <select {...register('gender')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+            <select {...register('gender')} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef] bg-white">
               <option value="MALE">Male</option>
               <option value="FEMALE">Female</option>
               <option value="OTHER">Other</option>
@@ -98,7 +100,7 @@ export default function NewStudentPage() {
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Date of Birth</label>
-          <input {...register('dateOfBirth')} type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <input {...register('dateOfBirth')} type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef]" />
           {errors.dateOfBirth && <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth.message}</p>}
         </div>
 
@@ -113,7 +115,7 @@ export default function NewStudentPage() {
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-white bg-[#5b51ef] hover:bg-[#4b42db] rounded-lg transition-colors disabled:opacity-50"
           >
             {mutation.isPending ? 'Saving...' : 'Create Student'}
           </button>

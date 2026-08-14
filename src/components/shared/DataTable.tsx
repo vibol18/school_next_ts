@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Badge } from './Badge';
+import { Pagination } from './Pagination';
+import { usePagination } from '@/lib/hooks/usePagination';
 
 export interface Column<T> {
   key: string;
@@ -16,6 +18,8 @@ interface DataTableProps<T> {
   keyExtractor: (row: T) => string | number;
   onRowClick?: (row: T) => void;
   emptyMessage?: string;
+  pageSize?: number;
+  showPagination?: boolean;
 }
 
 const STATUS_KEYS = ['status', 'statustext', 'state', 'leavestatus', 'paymentstatus'];
@@ -30,7 +34,11 @@ export function DataTable<T>({
   keyExtractor,
   onRowClick,
   emptyMessage = 'No data found.',
+  pageSize = 10,
+  showPagination = true,
 }: DataTableProps<T>) {
+  const { page, setPage, pagedItems, totalItems } = usePagination(data, pageSize);
+
   if (data.length === 0) {
     return (
       <div className="bg-white rounded-[10px] border border-[#e5e7eb] shadow-sm">
@@ -56,7 +64,7 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {data.map((row) => (
+            {pagedItems.map((row) => (
               <tr
                 key={keyExtractor(row)}
                 onClick={() => onRowClick?.(row)}
@@ -76,6 +84,9 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
+      {showPagination && (
+        <Pagination page={page} pageSize={pageSize} totalItems={totalItems} onPageChange={setPage} />
+      )}
     </div>
   );
 }

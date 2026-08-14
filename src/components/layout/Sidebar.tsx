@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { messageApi } from '@/lib/api/communication.api';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -17,11 +18,33 @@ const navItems = [
   { name: 'Library', href: '/library/books' },
   { name: 'Hostel & Transport', href: '/hostel/blocks' },
   { name: 'Communication', href: '/communication/notices' },
+  { name: 'Messages', href: '/communication/messages/inbox' },
   { name: 'Settings', href: '/settings/profile' },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedId = localStorage.getItem('userId');
+    if (!storedId) return;
+    const userId = parseInt(storedId, 10);
+    let active = true;
+    const load = () => {
+      messageApi
+        .getUnreadCount(userId)
+        .then((n) => active && setUnread(n))
+        .catch(() => active && setUnread(0));
+    };
+    load();
+    const timer = setInterval(load, 30000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, []);
 
   return (
     <aside className="w-[240px] bg-black text-[#9ca3af] flex flex-col h-screen shrink-0 overflow-y-auto select-none">
@@ -58,6 +81,11 @@ export function Sidebar() {
                 }`}
               />
               <span className="truncate">{item.name}</span>
+              {item.name === 'Messages' && unread > 0 && (
+                <span className="ml-auto shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-[#5b51ef] text-white text-[11px] font-bold flex items-center justify-center">
+                  {unread}
+                </span>
+              )}
             </Link>
           );
         })}

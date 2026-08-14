@@ -25,8 +25,8 @@ export const submissionApi = {
   create: (data: Omit<Submission, 'id' | 'submittedAt'>): Promise<Submission> =>
     apiClient.post('/api/assignment-submissions', data),
 
-  grade: (id: number, data: { grade: string; feedback: string }): Promise<Submission> =>
-    apiClient.patch(`/api/assignment-submissions/${id}/grade`, data),
+  grade: (id: number, data: { marks: number; feedback?: string }): Promise<Submission> =>
+    apiClient.patch(`/api/assignment-submissions/${id}/grade`, null, { params: data }),
 
   getByAssignment: (assignmentId: number): Promise<Submission[]> =>
     apiClient.get(`/api/assignment-submissions/assignment/${assignmentId}`),

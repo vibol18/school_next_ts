@@ -56,8 +56,13 @@ export default function TeachersListPage() {
       header: 'Teacher',
       render: (t) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#5b51ef]/10 text-[#5b51ef] flex items-center justify-center shrink-0">
-            <GraduationCap className="w-4 h-4" />
+          <div className="w-9 h-9 rounded-lg bg-[#5b51ef]/10 text-[#5b51ef] flex items-center justify-center shrink-0 overflow-hidden">
+            {t.profilePhoto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={t.profilePhoto} alt={t.employeeId} className="w-full h-full object-cover" />
+            ) : (
+              <GraduationCap className="w-4 h-4" />
+            )}
           </div>
           <div>
             <div className="font-semibold text-[#111827]">{t.employeeId}</div>

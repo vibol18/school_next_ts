@@ -27,6 +27,7 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
           qualification: teacher.qualification,
           experienceYears: String(teacher.experienceYears),
           dateOfJoining: teacher.dateOfJoining,
+          profilePhoto: teacher.profilePhoto || '',
         });
       } catch (err) {
         setError('Failed to load teacher information.');

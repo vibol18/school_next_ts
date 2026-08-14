@@ -5,7 +5,7 @@ import { Plus, UserCheck, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { DataTable, Column } from '@/components/shared/DataTable';
 import { ListToolbar } from '@/components/shared/ListToolbar';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
@@ -20,9 +20,10 @@ interface StudentRow {
   dateOfBirth?: string;
   bloodGroup?: string;
   address?: string;
+  profilePhoto?: string | null;
 }
 
-export default function StudentsPage() {
+function StudentsPageContent() {
   const searchParams = useSearchParams();
   const { data: students, isLoading, isError } = useQuery<StudentRow[]>({
     queryKey: ['students'],
@@ -57,8 +58,13 @@ export default function StudentsPage() {
       header: 'Student',
       render: (s) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6a60f5] to-[#4238d1] flex items-center justify-center text-white text-xs font-bold shrink-0">
-            {initials(s)}
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6a60f5] to-[#4238d1] flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden">
+            {s.profilePhoto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={s.profilePhoto} alt="Student" className="w-full h-full object-cover" />
+            ) : (
+              initials(s)
+            )}
           </div>
           <div className="min-w-0">
             <div className="font-semibold text-[#111827] truncate">
@@ -175,5 +181,13 @@ export default function StudentsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function StudentsPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner text="Loading students..." />}>
+      <StudentsPageContent />
+    </Suspense>
   );
 }

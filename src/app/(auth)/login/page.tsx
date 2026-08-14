@@ -18,28 +18,23 @@ export default function LoginPage() {
     setErrorMsg('');
 
     try {
-      // 1. Call login API
-      const response: any = await authApi.login({
+      // 1. Call login API (client.ts unwraps the HTTP body -> raw LoginResponse)
+      const data = await authApi.login({
         usernameOrEmail: usernameOrEmail.trim(),
         password,
       });
 
-      // 2. Extract payload safely (accounts for client.ts interceptor unwrapping)
-      const data = response?.data || response;
-
-      const accessToken = data?.accessToken || data?.token;
-      const refreshToken = data?.refreshToken;
-      const role = data?.role || data?.roles?.[0];
-      const username = data?.username;
-      const userId = data?.userId || data?.id;
-
-      // 3. Save auth details to localStorage
-      if (accessToken) {
-        localStorage.setItem('accessToken', accessToken);
-        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-        if (role) localStorage.setItem('userRole', role);
-        if (username) localStorage.setItem('username', username);
-        if (userId) localStorage.setItem('userId', userId.toString());
+      // 2. Save auth details to localStorage
+      if (data.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('userRole', data.user?.role ?? data.role ?? '');
+        localStorage.setItem('username', data.user?.username ?? data.username ?? '');
+        localStorage.setItem('userEmail', data.user?.email ?? data.email ?? '');
+        localStorage.setItem('userFirstName', data.user?.firstName ?? '');
+        localStorage.setItem('userLastName', data.user?.lastName ?? '');
+        localStorage.setItem('userPhoto', data.user?.profilePhoto ?? '');
+        localStorage.setItem('userId', String(data.user?.id ?? data.userId ?? ''));
 
         // Success - redirect to dashboard
         router.push('/dashboard');

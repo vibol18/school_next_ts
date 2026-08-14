@@ -3,12 +3,16 @@
 import React, { useEffect, useState } from 'react';
 import { sectionApi, classApi } from '@/lib/api';
 import { Section, SchoolClass } from '@/types/school.types';
+import { Pagination } from '@/components/shared/Pagination';
+import { usePagination } from '@/lib/hooks/usePagination';
 
 export default function SectionsPage() {
   const [sectionsList, setSectionsList] = useState<Section[]>([]);
   const [classesList, setClassesList] = useState<SchoolClass[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { page, setPage, pagedItems, totalItems } = usePagination(sectionsList);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -122,18 +126,19 @@ export default function SectionsPage() {
             No sections found. Click "Add Section" to create one.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-slate-700 uppercase text-[11px] font-semibold border-b border-slate-200 tracking-wider">
-                <tr>
-                  <th className="px-6 py-3.5">ID</th>
-                  <th className="px-6 py-3.5">Section Name</th>
-                  <th className="px-6 py-3.5">Class</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {sectionsList.map((s) => (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 text-slate-700 uppercase text-[11px] font-semibold border-b border-slate-200 tracking-wider">
+                  <tr>
+                    <th className="px-6 py-3.5">ID</th>
+                    <th className="px-6 py-3.5">Section Name</th>
+                    <th className="px-6 py-3.5">Class</th>
+                    <th className="px-6 py-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {pagedItems.map((s) => (
                   <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4 font-mono text-xs text-slate-500">#{s.id}</td>
                     <td className="px-6 py-4 font-semibold text-slate-900">{s.name}</td>
@@ -160,7 +165,9 @@ export default function SectionsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+            <Pagination page={page} pageSize={10} totalItems={totalItems} onPageChange={setPage} />
+          </>
         )}
       </div>
 

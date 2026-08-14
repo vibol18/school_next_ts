@@ -16,6 +16,7 @@ export default function NewTeacherPage() {
       qualification: data.qualification.trim(),
       experienceYears: data.experienceYears.trim(),
       dateOfJoining: data.dateOfJoining.trim(),
+      profilePhoto: data.profilePhoto || null,
     };
 
     try {

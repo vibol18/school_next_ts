@@ -3,27 +3,42 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { assignmentApi } from '@/lib/api/assignments-management';
+import { sectionsApi, subjectsApi } from '@/lib/api/academic';
+import type { Section, Subject } from '@/types/school.types';
 import { Assignment, AssignmentCreateInput } from '@/types/assignment.types';
+import { DataTable, Column } from '@/components/shared/DataTable';
+import { ListToolbar } from '@/components/shared/ListToolbar';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { Badge } from '@/components/shared/Badge';
+import { FileText, ClipboardList, Paperclip } from 'lucide-react';
+
+const toDateOnly = (value?: string) => (value ? value.slice(0, 10) : value);
 
 export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Edit Modal State
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
-  // Fetch initial list
   const loadAssignments = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await assignmentApi.getAll();
+      const [data, sectionData, subjectData] = await Promise.all([
+        assignmentApi.getAll(),
+        sectionsApi.getAll(),
+        subjectsApi.getAll(),
+      ]);
       setAssignments(data);
+      setSections(sectionData);
+      setSubjects(subjectData);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to fetch assignments.');
+      setError(err?.message || 'Failed to fetch assignments.');
     } finally {
       setLoading(false);
     }
@@ -33,7 +48,9 @@ export default function AssignmentsPage() {
     loadAssignments();
   }, []);
 
-  // Delete Assignment Handler
+  const sectionName = (id?: number) => sections.find((s) => s.id === id)?.name;
+  const subjectName = (id?: number) => subjects.find((s) => s.id === id)?.name;
+
   const handleDelete = async (id: number) => {
     if (!confirm(`Are you sure you want to delete assignment #${id}?`)) return;
 
@@ -42,13 +59,12 @@ export default function AssignmentsPage() {
       setAssignments((prev) => prev.filter((a) => a.id !== id));
     } catch (err: any) {
       alert(
-        err?.response?.data?.message ||
+        err?.message ||
           'Failed to delete assignment. Ensure there are no student submissions attached to it.'
       );
     }
   };
 
-  // Update Assignment Handler
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAssignment) return;
@@ -58,7 +74,7 @@ export default function AssignmentsPage() {
       const payload: AssignmentCreateInput = {
         title: editingAssignment.title,
         description: editingAssignment.description,
-        dueDate: editingAssignment.dueDate,
+        dueDate: toDateOnly(editingAssignment.dueDate),
         fileUrl: editingAssignment.fileUrl || undefined,
         sectionId: Number(editingAssignment.sectionId),
         subjectId: Number(editingAssignment.subjectId),
@@ -68,7 +84,7 @@ export default function AssignmentsPage() {
       setEditingAssignment(null);
       await loadAssignments();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to update assignment.');
+      alert(err?.message || 'Failed to update assignment.');
     } finally {
       setIsSaving(false);
     }
@@ -77,149 +93,165 @@ export default function AssignmentsPage() {
   const filteredAssignments = assignments.filter(
     (a) =>
       (a.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (a.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+      (a.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (sectionName(a.sectionId) || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (subjectName(a.subjectId) || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const columns: Column<Assignment>[] = [
+    {
+      key: 'title',
+      header: 'Assignment',
+      render: (a) => (
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[#5b51ef]/10 text-[#5b51ef] flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="font-semibold text-[#111827]">{a.title}</div>
+            <div className="text-xs text-slate-500 line-clamp-1 max-w-xs">
+              {a.description || 'No description'}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'section',
+      header: 'Section / Subject',
+      render: (a) => (
+        <div className="flex flex-wrap gap-1.5">
+          {sectionName(a.sectionId) ? (
+            <Badge variant="slate">{sectionName(a.sectionId)}</Badge>
+          ) : (
+            <span className="text-slate-300 text-xs">—</span>
+          )}
+          {subjectName(a.subjectId) ? (
+            <Badge variant="indigo">{subjectName(a.subjectId)}</Badge>
+          ) : (
+            <span className="text-slate-300 text-xs">—</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'dueDate',
+      header: 'Due Date',
+      render: (a) => (
+        <span className="text-xs text-slate-600">
+          {a.dueDate
+            ? (() => {
+                const d = new Date(a.dueDate);
+                return isNaN(d.getTime())
+                  ? a.dueDate
+                  : d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+              })()
+            : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'fileUrl',
+      header: 'Attachment',
+      render: (a) =>
+        a.fileUrl ? (
+          <a
+            href={a.fileUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-[#5b51ef] hover:underline font-medium"
+          >
+            <Paperclip className="w-3.5 h-3.5" />
+            View File
+          </a>
+        ) : (
+          <span className="text-slate-300 text-xs">None</span>
+        ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (a) => (
+        <div className="flex justify-end gap-2">
+          <Link
+            href={`/assignments/${a.id}`}
+            className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 py-1.5 rounded-md font-medium transition"
+          >
+            <ClipboardList className="w-3 h-3" />
+            Details
+          </Link>
+          <Link
+            href={`/assignments/${a.id}/submissions`}
+            className="text-xs text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 py-1.5 rounded-md font-medium transition"
+          >
+            Submissions
+          </Link>
+          <button
+            onClick={() => setEditingAssignment(a)}
+            className="text-xs text-[#4f46e5] hover:text-[#4338ca] bg-[#e5e5fa] px-2.5 py-1.5 rounded-md font-medium transition"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(a.id)}
+            className="text-xs text-rose-600 hover:text-rose-900 bg-rose-50 px-2.5 py-1.5 rounded-md font-medium transition"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Assignments</h1>
+          <h1 className="text-2xl font-bold text-[#111827]">Assignments</h1>
           <p className="text-sm text-slate-500">
             Manage, edit, and track coursework assigned across sections
           </p>
         </div>
         <Link
           href="/assignments/new"
-          className="inline-flex items-center justify-center bg-[#5b51ef] hover:bg-[#4b41df] text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
+          className="inline-flex items-center justify-center bg-[#5b51ef] hover:bg-[#4b42db] text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
         >
           + Create Assignment
         </Link>
       </div>
 
-      {/* Filter / Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-4">
-        <input
-          type="text"
-          placeholder="Search assignments by title or description..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full max-w-md px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5b51ef]"
-        />
-        <span className="text-xs text-slate-400 font-medium">
-          Total: {filteredAssignments.length}
-        </span>
-      </div>
-
-      {/* Error Banner */}
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-lg">
           {error}
         </div>
       )}
 
-      {/* Data Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center text-slate-500 text-sm">Loading assignments...</div>
-        ) : filteredAssignments.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-sm">
-            No assignments found. Click "Create Assignment" to add one.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-slate-700 uppercase text-[11px] font-semibold border-b border-slate-200 tracking-wider">
-                <tr>
-                  <th className="px-6 py-3.5">ID</th>
-                  <th className="px-6 py-3.5">Title</th>
-                  <th className="px-6 py-3.5">Section / Subject</th>
-                  <th className="px-6 py-3.5">Due Date</th>
-                  <th className="px-6 py-3.5">Attachment</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredAssignments.map((assignment) => (
-                  <tr key={assignment.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs text-slate-500">
-                      #{assignment.id}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">{assignment.title}</div>
-                      <div className="text-xs text-slate-500 line-clamp-1 max-w-xs">
-                        {assignment.description}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-xs font-medium">
-                      <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-700 rounded mr-1">
-                        Sec: {assignment.sectionId}
-                      </span>
-                      <span className="inline-block px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded">
-                        Sub: {assignment.subjectId}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-xs">
-                      {assignment.dueDate ? (
-                        (() => {
-                          const d = new Date(assignment.dueDate);
-                          return isNaN(d.getTime())
-                            ? assignment.dueDate
-                            : d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-                        })()
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-xs">
-                      {assignment.fileUrl ? (
-                        <a
-                          href={assignment.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[#5b51ef] hover:underline font-medium"
-                        >
-                          View File
-                        </a>
-                      ) : (
-                        <span className="text-slate-400">None</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <Link
-                        href={`/assignments/${assignment.id}/submissions`}
-                        className="text-xs text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 py-1.5 rounded-md font-medium transition"
-                      >
-                        Submissions
-                      </Link>
-                      <button
-                        onClick={() => setEditingAssignment(assignment)}
-                        className="text-xs text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-2.5 py-1.5 rounded-md font-medium transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(assignment.id)}
-                        className="text-xs text-rose-600 hover:text-rose-900 bg-rose-50 px-2.5 py-1.5 rounded-md font-medium transition"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <ListToolbar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by title, description, section, or subject..."
+      />
 
-      {/* Edit Assignment Modal */}
+      {loading ? (
+        <LoadingSpinner text="Loading assignments..." />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredAssignments}
+          keyExtractor={(a) => a.id}
+          emptyMessage={
+            searchQuery
+              ? `No assignments match "${searchQuery}".`
+              : 'No assignments found. Click "Create Assignment" to add one.'
+          }
+        />
+      )}
+
       {editingAssignment && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 max-w-lg w-full space-y-4 shadow-xl border border-slate-200">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-xl border border-slate-200">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-lg font-bold text-[#111827]">
                 Edit Assignment #{editingAssignment.id}
               </h2>
               <button
@@ -240,7 +272,7 @@ export default function AssignmentsPage() {
                   onChange={(e) =>
                     setEditingAssignment({ ...editingAssignment, title: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef]"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none"
                 />
               </div>
 
@@ -253,57 +285,69 @@ export default function AssignmentsPage() {
                   onChange={(e) =>
                     setEditingAssignment({ ...editingAssignment, description: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef]"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-medium text-slate-700 mb-1">Section ID</label>
-                  <input
-                    type="number"
+                  <label className="block font-medium text-slate-700 mb-1">Section</label>
+                  <select
                     required
-                    value={editingAssignment.sectionId}
+                    value={editingAssignment.sectionId ?? ''}
                     onChange={(e) =>
                       setEditingAssignment({
                         ...editingAssignment,
                         sectionId: Number(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef]"
-                  />
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none bg-white"
+                  >
+                    <option value="" disabled>
+                      Select section
+                    </option>
+                    {sections.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label className="block font-medium text-slate-700 mb-1">Subject ID</label>
-                  <input
-                    type="number"
+                  <label className="block font-medium text-slate-700 mb-1">Subject</label>
+                  <select
                     required
-                    value={editingAssignment.subjectId}
+                    value={editingAssignment.subjectId ?? ''}
                     onChange={(e) =>
                       setEditingAssignment({
                         ...editingAssignment,
                         subjectId: Number(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef]"
-                  />
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none bg-white"
+                  >
+                    <option value="" disabled>
+                      Select subject
+                    </option>
+                    {subjects.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               <div>
                 <label className="block font-medium text-slate-700 mb-1">Due Date</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   required
-                  value={
-                    editingAssignment.dueDate
-                      ? new Date(editingAssignment.dueDate).toISOString().slice(0, 16)
-                      : ''
-                  }
+                  value={toDateOnly(editingAssignment.dueDate) || ''}
                   onChange={(e) =>
                     setEditingAssignment({ ...editingAssignment, dueDate: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef]"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none"
                 />
               </div>
 
@@ -317,7 +361,7 @@ export default function AssignmentsPage() {
                   onChange={(e) =>
                     setEditingAssignment({ ...editingAssignment, fileUrl: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef]"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#5b51ef] outline-none"
                 />
               </div>
 
@@ -332,7 +376,7 @@ export default function AssignmentsPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-4 py-2 bg-[#5b51ef] text-white rounded-md hover:bg-[#4b41df] disabled:opacity-50 transition font-medium"
+                  className="px-4 py-2 bg-[#5b51ef] text-white rounded-md hover:bg-[#4b42db] disabled:opacity-50 transition font-medium"
                 >
                   {isSaving ? 'Saving...' : 'Update Assignment'}
                 </button>

@@ -10,7 +10,7 @@ export const bookApi = {
     apiClient.get(`/api/library/books/${id}`),
 
   search: (query: string): Promise<Book[]> =>
-    apiClient.get('/api/library/books/search', { params: { query } }),
+    apiClient.get('/api/library/books/search', { params: { q: query } }),
 
   create: (data: Omit<Book, 'id'>): Promise<Book> =>
     apiClient.post('/api/library/books', data),

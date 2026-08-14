@@ -16,6 +16,14 @@ export const teacherSchema = z.object({
     .refine((val) => !isNaN(Date.parse(val)), {
       message: 'Please enter a valid joining date',
     }),
+  profilePhoto: z
+    .union([
+      z.string().startsWith('data:image/', 'Must be an image file'),
+      z.string().url('Image URL is invalid'),
+      z.string().length(0),
+      z.null(),
+    ])
+    .optional(),
 });
 
 export type TeacherFormData = z.infer<typeof teacherSchema>;

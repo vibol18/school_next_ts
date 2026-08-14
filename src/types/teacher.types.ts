@@ -4,6 +4,7 @@ export interface Teacher {
   qualification: string;
   experienceYears: string;
   dateOfJoining: string; // ISO date string YYYY-MM-DD
+  profilePhoto?: string | null;
 }
 
 export interface TeacherCreateInput {
@@ -11,6 +12,7 @@ export interface TeacherCreateInput {
   qualification: string;
   experienceYears: string;
   dateOfJoining: string;
+  profilePhoto?: string | null;
 }
 
 export interface TeacherUpdateInput extends Partial<TeacherCreateInput> {}

@@ -80,6 +80,7 @@ export interface Student {
   admissionNumber?: string;
   username?: string;
   bloodGroup?: string;
+  profilePhoto?: string | null;
 }
 
 // ─── STAFF / TEACHER ─────────────────────────────────────────
