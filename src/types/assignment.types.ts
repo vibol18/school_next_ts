@@ -27,7 +27,6 @@ export interface AssignmentUpdateInput {
   sectionId?: number;
   subjectId?: number;
 }
-
 export interface AssignmentSubmission {
   id: number;
   assignmentId: number;
